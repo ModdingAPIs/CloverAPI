@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <AssemblyName>CloverAPI</AssemblyName>
+        <AssemblyVersion>1.0.0</AssemblyVersion>
+        <ReleaseVersion>1.0.0</ReleaseVersion>
+        <TargetFramework>net4.7.2</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <DebugType>portable</DebugType>
+
+        <OutputPath Condition=" '$(SolutionDir)' != '' ">$(SolutionDir)bin\</OutputPath>
+        <OutputPath Condition=" '$(SolutionDir)' == '' ">$(ProjectDir)bin\</OutputPath>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+        <PackageReference Include="BepInEx.Core" Version="5.4.21" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+        <PackageReference Include="UnityEngine.Modules" Version="6000.0.37" IncludeAssets="compile" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="lib\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Assembly-CSharp">
+        <HintPath>lib\Assembly-CSharp.dll</HintPath>
+        <Private>false</Private>
+      </Reference>
+      <Reference Include="UniTask">
+        <HintPath>lib\UniTask.dll</HintPath>
+        <Private>false</Private>
+      </Reference>
+      <Reference Include="Unity.TextMeshPro">
+        <HintPath>lib\Unity.TextMeshPro.dll</HintPath>
+        <Private>false</Private>
+      </Reference>
+    </ItemGroup>
+    
+</Project>

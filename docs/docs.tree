@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE instance-profile
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
+
+<instance-profile id="docs"
+                 name="Clover API Documentation"
+                 start-page="Intro.md">
+
+    <toc-element topic="Intro.md">
+    </toc-element>
+    <toc-element topic="Content.md">
+        <toc-element topic="Charms.md"/>
+        <toc-element topic="Strings.md"/>
+        <toc-element topic="SaveData.md"/>
+    </toc-element>
+    <toc-element topic="Data.md">
+    </toc-element>
+    <toc-element topic="Paths.md"/>
+</instance-profile>
