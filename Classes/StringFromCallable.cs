@@ -4,17 +4,17 @@ namespace CloverAPI.Classes;
 
 public class StringFromCallable : StringSource
 {
-	private delegate string StringProvider();
+    private readonly StringProvider _provider;
 
-	private StringProvider _provider;
+    public StringFromCallable(Func<string> provider)
+    {
+        this._provider = provider.Invoke;
+    }
 
-	public StringFromCallable(Func<string> provider)
-	{
-		_provider = provider.Invoke;
-	}
+    public override string GetString()
+    {
+        return this._provider();
+    }
 
-	public override string GetString()
-	{
-		return _provider();
-	}
+    private delegate string StringProvider();
 }

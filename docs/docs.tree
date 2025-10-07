@@ -3,8 +3,8 @@
         SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
 
 <instance-profile id="docs"
-                 name="Clover API Documentation"
-                 start-page="Intro.md">
+                  name="Clover API Documentation"
+                  start-page="Intro.md">
 
     <toc-element topic="Intro.md">
     </toc-element>

@@ -1,63 +1,77 @@
+using Panik;
 using System;
 using System.Collections.Generic;
-using Panik;
 
 namespace CloverAPI.Classes;
 
+public enum OnMissingLanguage
+{
+    UseDefault,
+    UseFirst,
+    ReturnKey,
+    ReturnNull,
+    ReturnEmpty,
+    ReturnErrorAsString,
+    ThrowError
+}
+
 public class LocalizedString : StringSource
 {
-	public string _key = "(Key Undefined)";
-	private Dictionary<Translation.Language, string> _localizedValues;
+    private readonly string _defaultValue;
+    private readonly Dictionary<Translation.Language, string> _localizedValues;
 
-	private string _defaultValue;
+    private readonly OnMissingLanguage _onMissingLanguage;
+    public string _key = "(Key Undefined)";
 
-	private OnMissingLanguage _onMissingLanguage = OnMissingLanguage.UseDefault;
+    public LocalizedString(Dictionary<Translation.Language, string> localizedValues, string defaultValue = null,
+        OnMissingLanguage onMissingLanguage = OnMissingLanguage.ReturnErrorAsString)
+    {
+        if (localizedValues == null || localizedValues.Count == 0)
+        {
+            throw new ArgumentException("localizedValues must contain at least one entry.");
+        }
 
-	public LocalizedString(Dictionary<Translation.Language, string> localizedValues, string defaultValue = null, OnMissingLanguage onMissingLanguage = OnMissingLanguage.ReturnErrorAsString)
-	{
-		if (localizedValues == null || localizedValues.Count == 0)
-		{
-			throw new ArgumentException("localizedValues must contain at least one entry.");
-		}
-		_localizedValues = localizedValues;
-		_defaultValue = defaultValue;
-		_onMissingLanguage = onMissingLanguage;
-	}
+        this._localizedValues = localizedValues;
+        this._defaultValue = defaultValue;
+        this._onMissingLanguage = onMissingLanguage;
+    }
 
-	public override string GetString()
-	{
-		Translation.Language locale = Data.settings.language;
-		if (_localizedValues.TryGetValue(locale, out var value))
-		{
-			return value;
-		}
-		switch (_onMissingLanguage)
-		{
-		case OnMissingLanguage.UseDefault:
-			if (!string.IsNullOrEmpty(_defaultValue))
-			{
-				return _defaultValue;
-			}
-			goto case OnMissingLanguage.UseFirst;
-		case OnMissingLanguage.UseFirst:
-			return new List<string>(_localizedValues.Values)[0];
-		case OnMissingLanguage.ReturnKey:
-			return _key;
-		case OnMissingLanguage.ReturnNull:
-			return null;
-		case OnMissingLanguage.ReturnEmpty:
-			return string.Empty;
-		case OnMissingLanguage.ReturnErrorAsString:
-			return $"[Error: Key '{_key}' missing for language '{locale}']";
-		case OnMissingLanguage.ThrowError:
-			throw new Exception($"Missing localization for language: {locale}");
-		default:
-			throw new ArgumentOutOfRangeException();
-		}
-	}
+    public override string GetString()
+    {
+        Translation.Language locale = Data.settings.language;
+        if (this._localizedValues.TryGetValue(locale, out string value))
+        {
+            return value;
+        }
+
+        switch (this._onMissingLanguage)
+        {
+            case OnMissingLanguage.UseDefault:
+                if (!string.IsNullOrEmpty(this._defaultValue))
+                {
+                    return this._defaultValue;
+                }
+
+                goto case OnMissingLanguage.UseFirst;
+            case OnMissingLanguage.UseFirst:
+                return new List<string>(this._localizedValues.Values)[0];
+            case OnMissingLanguage.ReturnKey:
+                return this._key;
+            case OnMissingLanguage.ReturnNull:
+                return null;
+            case OnMissingLanguage.ReturnEmpty:
+                return string.Empty;
+            case OnMissingLanguage.ReturnErrorAsString:
+                return $"[Error: Key '{this._key}' missing for language '{locale}']";
+            case OnMissingLanguage.ThrowError:
+                throw new Exception($"Missing localization for language: {locale}");
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
 
     public override void SetKey(string key)
     {
-        _key = key;
+        this._key = key;
     }
 }

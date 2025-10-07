@@ -2,18 +2,25 @@ namespace CloverAPI.Classes;
 
 public class RawString : StringSource
 {
-	private string _value;
+    private readonly string _value;
 
-	public RawString(string value)
-	{
-		_value = value;
-	}
+    public RawString(string value)
+    {
+        this._value = value;
+    }
 
-	public override string GetString()
-	{
-		return _value;
-	}
+    public override string GetString()
+    {
+        return this._value;
+    }
 
-	public static implicit operator RawString(string value) => new(value);
-	public static implicit operator string(RawString src) => src._value;
+    public static implicit operator RawString(string value)
+    {
+        return new RawString(value);
+    }
+
+    public static implicit operator string(RawString src)
+    {
+        return src._value;
+    }
 }

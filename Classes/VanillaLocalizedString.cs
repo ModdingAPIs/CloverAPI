@@ -1,19 +1,18 @@
-using CloverAPI.Content.Strings;
 using Panik;
 
 namespace CloverAPI.Classes;
 
 public class VanillaLocalizedString : StringSource
 {
-    public string Key { get; }
-
     public VanillaLocalizedString(string key)
     {
-        Key = key;
+        this.Key = key;
     }
+
+    public string Key { get; }
 
     public override string GetString()
     {
-        return Translation.Get(Key);
+        return Translation.Get(this.Key);
     }
 }

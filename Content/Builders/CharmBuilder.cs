@@ -1,371 +1,381 @@
-using System;
-using System.Numerics;
 using CloverAPI.Classes;
 using CloverAPI.Content.Charms;
 using CloverAPI.Content.Strings;
+using System;
+using System.Numerics;
 using static PowerupScript;
 
 namespace CloverAPI.Content.Builders;
 
 public class CharmBuilder
 {
-	public enum ModelMode
-	{
-		ExistingModel,
-		GenericModel,
-		CustomModel
-	}
+    public enum ModelMode
+    {
+        ExistingModel,
+        GenericModel,
+        CustomModel
+    }
 
-	internal Identifier id = Identifier.undefined;
+    private Archetype _archetype = Archetype.generic;
 
-	internal string guid;
+    private Category _category = Category.normal;
 
-	private Category _category = Category.normal;
+    private string _customModelAssetBundlePath;
 
-	private Archetype _archetype = Archetype.generic;
+    private string _customModelName;
 
-	private bool _isInstantPowerup = false;
+    private StringSource _description = "No description set.";
 
-	private int _maxBuyTimes = -1;
+    private bool _isInstantPowerup;
 
-    private float _storeRerollChance = STORE_REROLL_CHANCE_COMMON;
-
-    private int _startingPrice = PRICE_NORMAL;
-
-	private BigInteger _unlockPrice = -1L;
-
-	private StringSource _name = "Unnamed Lucky Charm";
-
-	private StringSource _description = "No description set.";
-
-	private StringSource _unlockMission = new VanillaLocalizedString("POWERUP_UNLOCK_MISSION_NONE");
-
-	private PowerupEvent _onEquip;
-
-	private PowerupEvent _onUnequip;
-
-	private PowerupEvent _onPutInDrawer;
-
-	private PowerupEvent _onThrowAway;
+    private int _maxBuyTimes = -1;
 
     private ModelMode _modelMode = ModelMode.GenericModel;
 
-	private string _customModelAssetBundlePath;
+    private StringSource _name = "Unnamed Lucky Charm";
 
-	private string _customModelName;
+    private PowerupEvent _onEquip;
+
+    private PowerupEvent _onPutInDrawer;
+
+    private PowerupEvent _onThrowAway;
+
+    private PowerupEvent _onUnequip;
 
     private Identifier _sourceModel = Identifier.undefined;
 
-	private TextureSource _texture = null;
+    private int _startingPrice = PRICE_NORMAL;
 
-	private CharmBuilder(string nameSpace, string identifier)
-	{
-		if (string.IsNullOrEmpty(nameSpace))
-		{
-			throw new ArgumentException("Namespace cannot be null or empty.", "nameSpace");
-		}
-		if (string.IsNullOrEmpty(identifier))
-		{
-			throw new ArgumentException("Identifier cannot be null or empty.", "identifier");
-		}
-		if (identifier.Contains("."))
-		{
-			throw new ArgumentException("Identifier cannot contain dots.", "identifier");
-		}
-		guid = nameSpace + "." + identifier;
-	}
+    private float _storeRerollChance = STORE_REROLL_CHANCE_COMMON;
 
-	public static CharmBuilder Create(string nameSpace, string identifier)
-	{
-		return new CharmBuilder(nameSpace, identifier);
-	}
+    private TextureSource _texture;
 
-	public static CharmBuilder Create(string nameSpace, string identifier, CharmScript script)
-	{
-		return Create(nameSpace, identifier).WithScript(script);
-	}
+    private StringSource _unlockMission = new VanillaLocalizedString("POWERUP_UNLOCK_MISSION_NONE");
 
-	public CharmBuilder WithCategory(Category category)
-	{
-		_category = category;
-		return this;
-	}
+    private BigInteger _unlockPrice = -1L;
 
-	public CharmBuilder WithArchetype(Archetype archetype)
-	{
-		_archetype = archetype;
-		return this;
-	}
+    internal string guid;
 
-	public CharmBuilder WithIsInstantPowerup(bool isInstantPowerup = true)
-	{
-		_isInstantPowerup = isInstantPowerup;
-		return this;
-	}
+    internal Identifier id = Identifier.undefined;
 
-	public CharmBuilder WithMaxBuyTimes(int maxBuyTimes)
-	{
-		_maxBuyTimes = maxBuyTimes;
-		return this;
-	}
+    private CharmBuilder(string nameSpace, string identifier)
+    {
+        if (string.IsNullOrEmpty(nameSpace))
+        {
+            throw new ArgumentException("Namespace cannot be null or empty.", "nameSpace");
+        }
 
-	public CharmBuilder WithStoreRerollChance(float storeRerollChance)
-	{
-		_storeRerollChance = storeRerollChance;
-		return this;
-	}
+        if (string.IsNullOrEmpty(identifier))
+        {
+            throw new ArgumentException("Identifier cannot be null or empty.", "identifier");
+        }
 
-	public CharmBuilder WithStartingPrice(int startingPrice)
-	{
-		_startingPrice = startingPrice;
-		return this;
-	}
+        if (identifier.Contains("."))
+        {
+            throw new ArgumentException("Identifier cannot contain dots.", "identifier");
+        }
 
-	public CharmBuilder WithUnlockPrice(BigInteger unlockPrice)
-	{
-		_unlockPrice = unlockPrice;
-		return this;
-	}
-    
+        this.guid = nameSpace + "." + identifier;
+    }
+
+    public static CharmBuilder Create(string nameSpace, string identifier)
+    {
+        return new CharmBuilder(nameSpace, identifier);
+    }
+
+    public static CharmBuilder Create(string nameSpace, string identifier, CharmScript script)
+    {
+        return Create(nameSpace, identifier).WithScript(script);
+    }
+
+    public CharmBuilder WithCategory(Category category)
+    {
+        this._category = category;
+        return this;
+    }
+
+    public CharmBuilder WithArchetype(Archetype archetype)
+    {
+        this._archetype = archetype;
+        return this;
+    }
+
+    public CharmBuilder WithIsInstantPowerup(bool isInstantPowerup = true)
+    {
+        this._isInstantPowerup = isInstantPowerup;
+        return this;
+    }
+
+    public CharmBuilder WithMaxBuyTimes(int maxBuyTimes)
+    {
+        this._maxBuyTimes = maxBuyTimes;
+        return this;
+    }
+
+    public CharmBuilder WithStoreRerollChance(float storeRerollChance)
+    {
+        this._storeRerollChance = storeRerollChance;
+        return this;
+    }
+
+    public CharmBuilder WithStartingPrice(int startingPrice)
+    {
+        this._startingPrice = startingPrice;
+        return this;
+    }
+
+    public CharmBuilder WithUnlockPrice(BigInteger unlockPrice)
+    {
+        this._unlockPrice = unlockPrice;
+        return this;
+    }
+
     public CharmBuilder WithUnlockPrice(long unlockPrice)
     {
-        _unlockPrice = unlockPrice;
-        return this;
-    }
-    
-    public CharmBuilder WithName(StringSource name)
-    {
-        _name = name;
+        this._unlockPrice = unlockPrice;
         return this;
     }
 
-	public CharmBuilder WithName(string name)
-	{
-		_name = name;
-		return this;
-	}
+    public CharmBuilder WithName(StringSource name)
+    {
+        this._name = name;
+        return this;
+    }
+
+    public CharmBuilder WithName(string name)
+    {
+        this._name = name;
+        return this;
+    }
 
     public CharmBuilder WithDescription(StringSource description)
     {
-        _description = description;
+        this._description = description;
         return this;
     }
 
-	public CharmBuilder WithDescription(string description)
-	{
-		_description = description;
-		return this;
-	}
-    
+    public CharmBuilder WithDescription(string description)
+    {
+        this._description = description;
+        return this;
+    }
+
     public CharmBuilder WithUnlockMission(StringSource unlockMission)
     {
-        _unlockMission = unlockMission;
+        this._unlockMission = unlockMission;
         return this;
     }
 
-	public CharmBuilder WithUnlockMission(string unlockMission)
-	{
-		_unlockMission = unlockMission;
-		return this;
-	}
+    public CharmBuilder WithUnlockMission(string unlockMission)
+    {
+        this._unlockMission = unlockMission;
+        return this;
+    }
 
-	public CharmBuilder WithOnEquipEvent(PowerupEvent onEquip)
-	{
-		_onEquip = onEquip;
-		return this;
-	}
+    public CharmBuilder WithOnEquipEvent(PowerupEvent onEquip)
+    {
+        this._onEquip = onEquip;
+        return this;
+    }
 
-	public CharmBuilder WithOnUnequipEvent(PowerupEvent onUnequip)
-	{
-		_onUnequip = onUnequip;
-		return this;
-	}
+    public CharmBuilder WithOnUnequipEvent(PowerupEvent onUnequip)
+    {
+        this._onUnequip = onUnequip;
+        return this;
+    }
 
-	public CharmBuilder WithOnPutInDrawerEvent(PowerupEvent onPutInDrawer)
-	{
-		_onPutInDrawer = onPutInDrawer;
-		return this;
-	}
+    public CharmBuilder WithOnPutInDrawerEvent(PowerupEvent onPutInDrawer)
+    {
+        this._onPutInDrawer = onPutInDrawer;
+        return this;
+    }
 
-	public CharmBuilder WithOnThrowAwayEvent(PowerupEvent onThrowAway)
-	{
-		_onThrowAway = onThrowAway;
-		return this;
-	}
+    public CharmBuilder WithOnThrowAwayEvent(PowerupEvent onThrowAway)
+    {
+        this._onThrowAway = onThrowAway;
+        return this;
+    }
 
-	public CharmBuilder WithScript(CharmScript script)
-	{
-		_onEquip = script.OnEquip;
-		_onUnequip = script.OnUnequip;
-		_onPutInDrawer = script.OnPutInDrawer;
-		_onThrowAway = script.OnThrowAway;
+    public CharmBuilder WithScript(CharmScript script)
+    {
+        this._onEquip = script.OnEquip;
+        this._onUnequip = script.OnUnequip;
+        this._onPutInDrawer = script.OnPutInDrawer;
+        this._onThrowAway = script.OnThrowAway;
         script.SetCharmReference(this);
-		return this;
-	}
+        return this;
+    }
 
-	public CharmBuilder WithScript<T>() where T : CharmScript, new()
-	{
-		return WithScript(new T());
-	}
+    public CharmBuilder WithScript<T>() where T : CharmScript, new()
+    {
+        return WithScript(new T());
+    }
 
     public CharmBuilder WithTextureModel(TextureSource texture)
     {
-        _modelMode = ModelMode.GenericModel;
-        _texture = texture;
+        this._modelMode = ModelMode.GenericModel;
+        this._texture = texture;
         return this;
     }
-    
-	public CharmBuilder WithExistingModel(Identifier sourceModel, TextureSource texture = null)
-	{
-		_modelMode = ModelMode.ExistingModel;
-		_sourceModel = sourceModel;
-		_texture = texture;
-		return this;
-	}
 
-	public CharmBuilder WithCustomModel(string assetBundlePath, string modelName = null, TextureSource texture = null)
-	{
-		_modelMode = ModelMode.CustomModel;
-		_customModelAssetBundlePath = assetBundlePath;
-		_customModelName = modelName;
-		_texture = texture;
-		return this;
-	}
+    public CharmBuilder WithExistingModel(Identifier sourceModel, TextureSource texture = null)
+    {
+        this._modelMode = ModelMode.ExistingModel;
+        this._sourceModel = sourceModel;
+        this._texture = texture;
+        return this;
+    }
 
-	public string GetName()
-	{
-		return _name;
-	}
+    public CharmBuilder WithCustomModel(string assetBundlePath, string modelName = null, TextureSource texture = null)
+    {
+        this._modelMode = ModelMode.CustomModel;
+        this._customModelAssetBundlePath = assetBundlePath;
+        this._customModelName = modelName;
+        this._texture = texture;
+        return this;
+    }
 
-	public string GetDescription()
-	{
-		return _description;
-	}
+    public string GetName()
+    {
+        return this._name;
+    }
 
-	public Category GetCategory()
-	{
-		return _category;
-	}
+    public string GetDescription()
+    {
+        return this._description;
+    }
 
-	public Archetype GetArchetype()
-	{
-		return _archetype;
-	}
+    public Category GetCategory()
+    {
+        return this._category;
+    }
 
-	public bool IsInstantPowerup()
-	{
-		return _isInstantPowerup;
-	}
+    public Archetype GetArchetype()
+    {
+        return this._archetype;
+    }
 
-	public int GetMaxBuyTimes()
-	{
-		return _maxBuyTimes;
-	}
+    public bool IsInstantPowerup()
+    {
+        return this._isInstantPowerup;
+    }
 
-	public float GetStoreRerollChance()
-	{
-		return _storeRerollChance;
-	}
+    public int GetMaxBuyTimes()
+    {
+        return this._maxBuyTimes;
+    }
 
-	public int GetStartingPrice()
-	{
-		return _startingPrice;
-	}
+    public float GetStoreRerollChance()
+    {
+        return this._storeRerollChance;
+    }
 
-	public BigInteger GetUnlockPrice()
-	{
-		return _unlockPrice;
-	}
+    public int GetStartingPrice()
+    {
+        return this._startingPrice;
+    }
 
-	public string GetUnlockMission()
-	{
-		return _unlockMission;
-	}
+    public BigInteger GetUnlockPrice()
+    {
+        return this._unlockPrice;
+    }
 
-	public PowerupEvent GetOnEquipEvent()
-	{
-		return _onEquip;
-	}
+    public string GetUnlockMission()
+    {
+        return this._unlockMission;
+    }
 
-	public PowerupEvent GetOnUnequipEvent()
-	{
-		return _onUnequip;
-	}
+    public PowerupEvent GetOnEquipEvent()
+    {
+        return this._onEquip;
+    }
 
-	public PowerupEvent GetOnPutInDrawerEvent()
-	{
-		return _onPutInDrawer;
-	}
+    public PowerupEvent GetOnUnequipEvent()
+    {
+        return this._onUnequip;
+    }
 
-	public PowerupEvent GetOnThrowAwayEvent()
-	{
-		return _onThrowAway;
-	}
+    public PowerupEvent GetOnPutInDrawerEvent()
+    {
+        return this._onPutInDrawer;
+    }
 
-	public ModelMode GetModelMode()
-	{
-		return _modelMode;
-	}
+    public PowerupEvent GetOnThrowAwayEvent()
+    {
+        return this._onThrowAway;
+    }
 
-	public string GetCustomModelAssetBundlePath()
-	{
-		return _customModelAssetBundlePath;
-	}
+    public ModelMode GetModelMode()
+    {
+        return this._modelMode;
+    }
 
-	public string GetCustomModelName()
-	{
-		return _customModelName;
-	}
+    public string GetCustomModelAssetBundlePath()
+    {
+        return this._customModelAssetBundlePath;
+    }
 
-	public Identifier GetSourceModel()
-	{
-		return _sourceModel;
-	}
+    public string GetCustomModelName()
+    {
+        return this._customModelName;
+    }
 
-	public Texture2D GetTexture()
-	{
-		return _texture?.GetTexture();
-	}
+    public Identifier GetSourceModel()
+    {
+        return this._sourceModel;
+    }
 
-	public Identifier GetID()
-	{
-		return id;
-	}
+    public Texture2D GetTexture()
+    {
+        return this._texture?.GetTexture();
+    }
 
-	public string GetGUID()
-	{
-		return guid;
-	}
+    public Identifier GetID()
+    {
+        return this.id;
+    }
 
-	public string GetNamespace()
-	{
-		int lastDotIndex = guid.LastIndexOf('.');
-		return guid.Substring(0, lastDotIndex);
-	}
+    public string GetGUID()
+    {
+        return this.guid;
+    }
 
-	public string GetIdentifier()
-	{
-		int lastDotIndex = guid.LastIndexOf('.');
-		return guid.Substring(lastDotIndex + 1);
-	}
+    public string GetNamespace()
+    {
+        int lastDotIndex = this.guid.LastIndexOf('.');
+        return this.guid.Substring(0, lastDotIndex);
+    }
 
-	internal void _Initialize(PowerupScript obj, bool isNewGame)
-	{
-		if (id == Identifier.undefined)
-		{
-			throw new InvalidOperationException("Charm " + _name + " is not registered. Call BuildAndRegister() before using the charm.");
-		}
-		obj.Initialize(isNewGame, _category, id, _archetype, _isInstantPowerup, _maxBuyTimes, _storeRerollChance, _startingPrice, _unlockPrice, LocalizationManager.Add("MODDED_CHARM_" + guid + "_NAME", _name), LocalizationManager.Add("MODDED_CHARM_" + guid + "_DESC", _description), LocalizationManager.Add("MODDED_CHARM_" + guid + "_MISSION", _unlockMission), _onEquip, _onUnequip, _onPutInDrawer, _onThrowAway);
-	}
+    public string GetIdentifier()
+    {
+        int lastDotIndex = this.guid.LastIndexOf('.');
+        return this.guid.Substring(lastDotIndex + 1);
+    }
 
-	[Obsolete("Use BuildAndRegister() for clarity.")]
-	public Identifier Build()
-	{
-		return BuildAndRegister();
-	}
+    internal void _Initialize(PowerupScript obj, bool isNewGame)
+    {
+        if (this.id == Identifier.undefined)
+        {
+            throw new InvalidOperationException("Charm " + this._name +
+                                                " is not registered. Call BuildAndRegister() before using the charm.");
+        }
 
-	public Identifier BuildAndRegister()
-	{
-		return CharmManager.RegisterCharm(this);
-	}
+        obj.Initialize(isNewGame, this._category, this.id, this._archetype, this._isInstantPowerup, this._maxBuyTimes,
+            this._storeRerollChance, this._startingPrice, this._unlockPrice,
+            LocalizationManager.Register("MODDED_CHARM_" + this.guid + "_NAME", this._name),
+            LocalizationManager.Register("MODDED_CHARM_" + this.guid + "_DESC", this._description),
+            LocalizationManager.Register("MODDED_CHARM_" + this.guid + "_MISSION", this._unlockMission), this._onEquip,
+            this._onUnequip, this._onPutInDrawer, this._onThrowAway);
+    }
+
+    [Obsolete("Use BuildAndRegister() for clarity.")]
+    public Identifier Build()
+    {
+        return BuildAndRegister();
+    }
+
+    public Identifier BuildAndRegister()
+    {
+        return CharmManager.RegisterCharm(this);
+    }
 }
