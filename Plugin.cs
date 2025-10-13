@@ -19,7 +19,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string PluginGuid = "ModdingAPIs.cloverpit.CloverAPI";
     public const string PluginName = "Clover API";
-    public const string PluginVer = "0.1.0";
+    public const string PluginVer = "0.1.1";
     internal const string MainContentFolder = "CloverAPI_Content";
 
     private const int FONT_SIZE = 24;
@@ -109,7 +109,7 @@ public class Plugin : BaseUnityPlugin
         {
             font = FontsMaster.instance.GetFontNormal(0).sourceFontFile,
             fontSize = FONT_SIZE,
-            normal = { textColor = new Color(0f, 0.8f, 0f) }
+            normal = { textColor = new Color(0.3f, 0.5f, 0.3f) }
         };
         GUI.Label(new Rect(32f, 30f, 1000f, 40f), $"Modded, {PluginName} v{PluginVer}", style);
     }
@@ -118,6 +118,7 @@ public class Plugin : BaseUnityPlugin
     {
         this.EnableDebugKeys = this.Config.Bind("General", "EnableDebugKeys", false,
             "If true, enables debug keybinds for testing purposes.");
+        ModSettingsManager.RegisterPageFromConfig(this, "Clover API Settings");
     }
 
     private void LoadAssets()

@@ -67,16 +67,41 @@ internal class CharmPatcher
     internal static IEnumerable<CodeInstruction> GameplayData__EnsurePowerupDataArray_Transpiler(
         IEnumerable<CodeInstruction> instructions)
     {
-        int repl = 0;
-        const int count = (int)PowerupScript.Identifier.count;
-        // Replace all instances of 'ldc.i4' with 'count' as operand with 'ldc.i4' with 'TotalCharms' as operand
+        return ReplaceILCharmCounts(instructions, caller: "GameplayData._EnsurePowerupDataArray");
+    }
+    
+    [HarmonyPatch(typeof(TerminalScript), nameof(TerminalScript.Initialize))]
+    [HarmonyTranspiler]
+    internal static IEnumerable<CodeInstruction> TerminalScript_Initialize_Transpiler(
+        IEnumerable<CodeInstruction> instructions)
+    {
+        return ReplaceILCharmCounts(instructions, expectedAmountSeen: 2, caller: "TerminalScript.Initialize");
+    }
+    
+#pragma warning disable Harmony003
+    private static IEnumerable<CodeInstruction> ReplaceILCharmCounts(IEnumerable<CodeInstruction> instructions, string onNotFound = "error", string onMultipleFound = "warn", int replaceAmount = 1, int expectedAmountSeen = 1, string caller = "unknown")
+    {
+        if (replaceAmount < 1 || expectedAmountSeen < 1)
+        {
+            LogError($"Invalid arguments to ReplaceILCharmCounts in '{caller}'. Both replaceAmount and expectedAmountSeen must be at least 1.");
+            replaceAmount = Mathf.Max(1, replaceAmount);
+            expectedAmountSeen = Mathf.Max(1, expectedAmountSeen);
+        }
+        int seen = 0;
         foreach (CodeInstruction instruction in instructions)
         {
             if (instruction.opcode == OpCodes.Ldc_I4 && instruction.operand is int operand &&
-                operand == count) // No need to check for 'ldc.i4.s' since count > 127
+                operand == (int)PowerupScript.Identifier.count) // No need to check for 'ldc.i4.s' since count > 127
             {
-                yield return new CodeInstruction(OpCodes.Ldc_I4, CharmManager.TotalCharms);
-                repl++;
+                if (seen < replaceAmount)
+                {
+                    yield return new CodeInstruction(OpCodes.Ldc_I4, CharmManager.TotalCharms);
+                }
+                else
+                {
+                    yield return instruction;
+                }
+                seen++;
             }
             else
             {
@@ -84,15 +109,47 @@ internal class CharmPatcher
             }
         }
 
-        if (repl == 0)
+        if (seen < expectedAmountSeen)
         {
-            LogError("Failed to apply GameplayData._EnsurePowerupDataArray transpiler patch!");
+            if (expectedAmountSeen == 1)
+            {
+                if (onNotFound == "error")
+                {
+                    LogError(
+                        $"Transpiler patch in '{caller}' failed to replace any instances of 'ldc.i4 {(int)PowerupScript.Identifier.count}'!");
+                }
+                else if (onNotFound == "warn")
+                {
+                    LogWarning(
+                        $"Transpiler patch in '{caller}' failed to replace any instances of 'ldc.i4 {(int)PowerupScript.Identifier.count}'!");
+                }
+            }
+            else
+            {
+                if (onNotFound == "error")
+                {
+                    LogError(
+                        $"Transpiler patch in '{caller}' replaced only {seen} instances of 'ldc.i4 {(int)PowerupScript.Identifier.count}'. Expected to replace exactly {expectedAmountSeen} instances, but could be fine if an update changed this.");
+                }
+                else if (onNotFound == "warn")
+                {
+                    LogWarning(
+                        $"Transpiler patch in '{caller}' replaced only {seen} instances of 'ldc.i4 {(int)PowerupScript.Identifier.count}'. Expected to replace exactly {expectedAmountSeen} instances, but could be fine if an update changed this.");
+                }
+            }
         }
-
-        if (repl > 1)
+        if (seen > expectedAmountSeen)
         {
-            LogWarning(
-                $"GameplayData._EnsurePowerupDataArray transpiler patch replaced {repl} instances of 'ldc.i4 {count}'. Expected to replace exactly 1 instance, but could be fine if an update added more.");
+            if (onMultipleFound == "error")
+            {
+                LogError(
+                    $"Transpiler patch in '{caller}' replaced {seen} instances of 'ldc.i4 {(int)PowerupScript.Identifier.count}'. Expected to replace exactly {expectedAmountSeen} instance{(expectedAmountSeen == 1 ? "" : "s")}!");
+            }
+            else if (onMultipleFound == "warn")
+            {
+                LogWarning(
+                    $"Transpiler patch in '{caller}' replaced {seen} instances of 'ldc.i4 {(int)PowerupScript.Identifier.count}'. Expected to replace exactly {expectedAmountSeen} instance{(expectedAmountSeen == 1 ? "" : "s")}!");
+            }
         }
     }
 
@@ -104,3 +161,4 @@ internal class CharmPatcher
         }
     }
 }
+#pragma warning restore Harmony003

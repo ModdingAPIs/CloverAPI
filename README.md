@@ -40,3 +40,12 @@ Please respect this request.
 
 The APIs distribution contains Newtonsoft JSON. Please do not include it in your mod as well, as it may cause conflicts.
 Of course, you can still use it in your mod, just don't include it in the distribution.
+
+## License
+See [LICENSE](LICENSE) for more information.
+
+## Credits
+- IngoH - Project lead, maintainer, and developer
+- pharmacomaniac (a.k.a. zapybibby) - Settings integration
+
+Thanks to everyone who provided feedback and helped to test the API!
