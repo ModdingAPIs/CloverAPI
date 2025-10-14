@@ -4,6 +4,8 @@ using System.Globalization;
 using System.Reflection;
 using BepInEx.Bootstrap;
 using BepInEx.Configuration;
+using CloverAPI.Classes;
+using CloverAPI.Utils;
 using System.Linq;
 
 namespace CloverAPI.Content.Data;
@@ -25,6 +27,7 @@ namespace CloverAPI.Content.Data;
 /// });
 /// </code>
 /// </remarks>
+#nullable enable
 public class ModSettingsManager
 {
     private const int MaxAutoDecimalPlaces = 6;
@@ -77,7 +80,7 @@ public class ModSettingsManager
     {
         private readonly List<Item> items = new();
 
-        internal Page(string name, string ownerGuid, string ownerName, string normalizedName)
+        internal Page(string name, ModGuid ownerGuid, ModName ownerName, string normalizedName)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Page name must not be empty.", nameof(name));
@@ -406,12 +409,18 @@ public class ModSettingsManager
             int maxPercent = 100,
             int step = 5,
             bool wrap = false,
+            bool showPercent = true,
+            float scale = 1f,
             Action<int>? onChanged = null)
         {
             if (maxPercent < minPercent)
                 throw new ArgumentOutOfRangeException(nameof(maxPercent), "maxPercent must be greater than or equal to minPercent.");
 
-            string Formatter(int value) => $"{value}%";
+            string Formatter(int value)
+            {
+                int actual = (int)(value * scale);
+                return showPercent ? $"{actual}%" : actual.ToString();
+            }
             return AddIntStepper(label, getter, setter, step, minPercent, maxPercent, wrap, valueFormatter: Formatter, onChanged: onChanged);
         }
 
@@ -425,12 +434,14 @@ public class ModSettingsManager
             int maxPercent = 100,
             int step = 5,
             bool wrap = false,
+            bool showPercent = true,
+            float scale = 1f,
             Action<int>? onChanged = null)
         {
             if (entry == null)
                 throw new ArgumentNullException(nameof(entry));
 
-            return Percent(label, () => entry.Value, value => entry.Value = value, minPercent, maxPercent, step, wrap, onChanged);
+            return Percent(label, () => entry.Value, value => entry.Value = value, minPercent, maxPercent, step, wrap, showPercent, scale, onChanged);
         }
 
         /// <summary>
@@ -445,6 +456,8 @@ public class ModSettingsManager
             float step = 5f,
             bool wrap = false,
             int decimalPlaces = 1,
+            bool showPercent = true,
+            float scale = 1f,
             Action<float>? onChanged = null)
         {
             if (label == null)
@@ -462,15 +475,15 @@ public class ModSettingsManager
             int autoDecimalPlaces = GetRequiredDecimalPlaces(minPercent, maxPercent, step, currentValue);
             int effectiveDecimalPlaces = Math.Max(decimalPlaces, autoDecimalPlaces);
 
-            int scale = Pow10(effectiveDecimalPlaces);
+            int localScale = Pow10(effectiveDecimalPlaces);
 
             int Scale(float value)
             {
-                decimal scaled = (decimal)value * scale;
+                decimal scaled = (decimal)value * localScale;
                 return (int)Math.Round(scaled, MidpointRounding.AwayFromZero);
             }
 
-            float Unscale(int value) => (float)value / scale;
+            float Unscale(int value) => (float)value / localScale;
 
             int stepScaled = Scale(step);
             if (stepScaled <= 0)
@@ -483,12 +496,12 @@ public class ModSettingsManager
 
             string FormatPercentLabel(int scaledValue)
             {
-                float actual = Unscale(scaledValue);
+                float actual = Unscale(scaledValue) * scale;
                 string format = effectiveDecimalPlaces > 0 ? $"F{effectiveDecimalPlaces}" : "F0";
                 string text = actual.ToString(format, CultureInfo.InvariantCulture);
                 if (effectiveDecimalPlaces > 0)
                     text = text.TrimEnd('0').TrimEnd('.');
-                return $"{text}%";
+                return showPercent ? $"{text}%" : text;
             }
 
             Action<int>? wrappedOnChanged = null;
@@ -520,12 +533,14 @@ public class ModSettingsManager
             float step = 5f,
             bool wrap = false,
             int decimalPlaces = 1,
+            bool showPercent = true,
+            float scale = 1f,
             Action<float>? onChanged = null)
         {
             if (entry == null)
                 throw new ArgumentNullException(nameof(entry));
 
-            return Percent(label, () => entry.Value, value => entry.Value = value, minPercent, maxPercent, step, wrap, decimalPlaces, onChanged);
+            return Percent(label, () => entry.Value, value => entry.Value = value, minPercent, maxPercent, step, wrap, decimalPlaces, showPercent, scale, onChanged);
         }
 
         /// <summary>
@@ -922,7 +937,7 @@ public class ModSettingsManager
         string name = page.Name ?? string.Empty;
         string normalized = page.NormalizedName ?? NormalizePageName(name);
 
-        if (!ownersByDisplayName.TryGetValue(normalized, out var owners) || owners.Count <= 1)
+        if (!ownersByDisplayName.TryGetValueNoCase(normalized, out var owners) || owners.Count <= 1)
             return name;
 
         string ownerLabel = page.OwnerName;
@@ -950,13 +965,13 @@ public class ModSettingsManager
         string ownerGuid = page.OwnerGuid;
         string normalizedName = page.NormalizedName;
 
-        if (!pagesByOwner.TryGetValue(ownerGuid, out var ownerPages))
+        if (!pagesByOwner.TryGetValueNoCase(ownerGuid, out var ownerPages))
         {
             ownerPages = new Dictionary<string, Page>(StringComparer.OrdinalIgnoreCase);
             pagesByOwner[ownerGuid] = ownerPages;
         }
-
-        if (ownerPages.TryGetValue(normalizedName, out var existing))
+        
+        if (ownerPages.TryGetValueNoCase(normalizedName, out var existing))
         {
             int index = pages.IndexOf(existing);
             if (index >= 0)
@@ -983,7 +998,7 @@ public class ModSettingsManager
         string normalizedName = page.NormalizedName ?? NormalizePageName(page.Name ?? string.Empty);
         string ownerGuid = page.OwnerGuid ?? string.Empty;
 
-        if (!ownersByDisplayName.TryGetValue(normalizedName, out var owners))
+        if (!ownersByDisplayName.TryGetValueNoCase(normalizedName, out var owners))
         {
             owners = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             ownersByDisplayName[normalizedName] = owners;
@@ -1005,30 +1020,6 @@ public class ModSettingsManager
         return trimmed;
     }
 
-    private static string ResolveOwnerGuid(BaseUnityPlugin owner)
-    {
-        if (owner == null)
-            throw new ArgumentNullException(nameof(owner));
-
-        string? guid = owner.Info?.Metadata?.GUID;
-        if (string.IsNullOrWhiteSpace(guid))
-            throw new InvalidOperationException($"Plugin '{owner.GetType().FullName}' must define a BepInEx GUID.");
-
-        return guid;
-    }
-
-    private static string ResolveOwnerName(BaseUnityPlugin owner)
-    {
-        if (owner == null)
-            throw new ArgumentNullException(nameof(owner));
-
-        string? name = owner.Info?.Metadata?.Name;
-        if (!string.IsNullOrWhiteSpace(name))
-            return name;
-
-        return owner.GetType().Name;
-    }
-
     private static Page CreatePageShell(BaseUnityPlugin owner, string name)
     {
         if (owner == null)
@@ -1038,16 +1029,14 @@ public class ModSettingsManager
 
         string normalizedName = NormalizePageName(name);
         string displayName = name.Trim();
-        string ownerGuid = ResolveOwnerGuid(owner);
-        string ownerName = ResolveOwnerName(owner);
 
-        return new Page(displayName, ownerGuid, ownerName, normalizedName);
+        return new Page(displayName, owner, owner, normalizedName);
     }
 
     /// <summary>
     /// Creates a page and immediately invokes <paramref name="configure"/> (if provided) so you can populate it inline.
     /// </summary>
-    public static PageBuilder RegisterPage(BaseUnityPlugin owner, string name, Action<PageBuilder> configure = null)
+    public static PageBuilder RegisterPage(BaseUnityPlugin owner, string name, Action<PageBuilder>? configure = null)
     {
         if (owner == null)
             throw new ArgumentNullException(nameof(owner));
@@ -1086,7 +1075,7 @@ public class ModSettingsManager
     /// <summary>
     /// Creates a page and populates it based on the config entries of the specified plugin, then invokes <paramref name="configure"/> so you can populate remaining items inline.
     /// </summary>
-    public static PageBuilder RegisterPageFromConfig(BaseUnityPlugin owner, string name, string[] ignoredKeys = null, string[] ignoredCategories = null, Action<PageBuilder> configure = null)
+    public static PageBuilder RegisterPageFromConfig(BaseUnityPlugin owner, string name, string[]? ignoredKeys = null, string[]? ignoredCategories = null, Action<PageBuilder>? configure = null)
     {
         if (owner == null)
             throw new ArgumentNullException(nameof(owner));
@@ -1117,13 +1106,13 @@ public class ModSettingsManager
     /// <summary>
     /// Legacy overload that infers the owner from the calling assembly. Prefer <see cref="RegisterPage(BaseUnityPlugin, string, string[], string[], Action{PageBuilder})" />.
     /// </summary>
-    public static PageBuilder RegisterPageFromConfig(string name, string[] ignoredKeys, string[] ignoredCategories, Action<PageBuilder> configure = null)
+    public static PageBuilder RegisterPageFromConfig(string name, string[] ignoredKeys, string[] ignoredCategories, Action<PageBuilder>? configure = null)
     {
         var owner = ResolveOwnerForLegacyCall(Assembly.GetCallingAssembly());
         return RegisterPageFromConfig(owner, name, ignoredKeys, ignoredCategories, configure);
     }
     
-    private static void PopulateFromConfig(PageBuilder builder, BaseUnityPlugin owner, string[] ignoredKeys, string[] ignoredCategories)
+    private static void PopulateFromConfig(PageBuilder builder, BaseUnityPlugin owner, string[]? ignoredKeys, string[]? ignoredCategories)
     {
         if (builder == null)
             throw new ArgumentNullException(nameof(builder));
@@ -1158,12 +1147,31 @@ public class ModSettingsManager
                 }
                 else if (v is int)
                 {
-                    builder.Int(entry.Key.Key, (ConfigEntry<int>)entry.Value);
+                    int? min = null;
+                    int? max = null;
+                    var range = entry.Value.Description.AcceptableValues;
+                    if (range is AcceptableValueRange<int> intRange)
+                    {
+                        min = intRange.MinValue;
+                        max = intRange.MaxValue;
+                    }
+                    builder.Int(entry.Key.Key, (ConfigEntry<int>)entry.Value, min, max);
                 }
                 else if (v is float)
                 {
-                    builder.Percent(entry.Key.Key, (ConfigEntry<float>)entry.Value);
+                    float min = 0;
+                    float max = 100f;
+                    var range = entry.Value.Description.AcceptableValues;
+                    if (range is AcceptableValueRange<float> floatRange)
+                    {
+                        min = floatRange.MinValue;
+                        max = floatRange.MaxValue;
+                    }
+                    GetScaleValues(min, max, out float step, out int decimalPlaces, out bool isPercent, out float scale);
+
+                    builder.Percent(entry.Key.Key, (ConfigEntry<float>)entry.Value, min, max, step, decimalPlaces: decimalPlaces, scale: scale);
                 }
+
                 else if (v is string)
                 {
                     var configEntry = (ConfigEntry<string>)entry.Value;
@@ -1187,6 +1195,21 @@ public class ModSettingsManager
             }
         }
     }
+    
+    private static void GetScaleValues(float min, float max, out float step, out int decimalPlaces, out bool isPercent, out float scale)
+    {
+        if (max < min)
+            throw new ArgumentOutOfRangeException(nameof(max), "max must be greater than or equal to min.");
+        // Determine if the range is suitable for percentage display.
+        var isRawPct = min is >= 0f and < 50f && max is > 50f and <= 500f;
+        var isFloatPct = min is >= 0f and < 0.5f && max is > 0.5f and <= 5f;
+        isPercent = isRawPct || isFloatPct;
+        scale = isFloatPct ? 100f : 1f;
+        var delta = max - min;
+        var roughStep = delta / 20f;
+        step = MathUtils.RoundToNearestSignificantFive(roughStep);
+        decimalPlaces = Math.Max(0, Math.Min(4, Mathf.RoundToInt(Mathf.Log10(1f / step))));
+    }   
 
     /// <summary>
     /// Adds a new item to the supplied page. Usually you want to use the higher-level helpers on <see cref="PageBuilder"/>.
@@ -1223,7 +1246,7 @@ public class ModSettingsManager
                 continue;
 
             if (info.Instance.GetType().Assembly == assembly)
-                return info.Instance as BaseUnityPlugin;
+                return info.Instance;
         }
 
         return null;

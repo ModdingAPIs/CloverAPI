@@ -29,7 +29,9 @@ public class Plugin : BaseUnityPlugin
 
     internal static string PluginPath;
 
-    internal ConfigEntry<bool> EnableDebugKeys;
+    internal static ConfigEntry<bool> EnableDebugKeys;
+    internal static ConfigEntry<bool> UseFullQualityTextures;
+    internal static ConfigEntry<string> OverrideOrdering;
 
     public static string DataPath { get; private set; }
     public static string ImagePath { get; private set; }
@@ -48,7 +50,7 @@ public class Plugin : BaseUnityPlugin
 
     private void Update()
     {
-        if (this.EnableDebugKeys.Value)
+        if (EnableDebugKeys.Value)
         {
             int mult = 1;
             if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
@@ -116,9 +118,14 @@ public class Plugin : BaseUnityPlugin
 
     private void MakeConfig()
     {
-        this.EnableDebugKeys = this.Config.Bind("General", "EnableDebugKeys", false,
+        EnableDebugKeys = this.Config.Bind("General", "EnableDebugKeys", false,
             "If true, enables debug keybinds for testing purposes.");
+        UseFullQualityTextures = this.Config.Bind("General", "UseFullQualityTextures", true,
+            "If true, uses full quality textures for modded content. If false, resizes them to match the size of the original texture. Some textures require a restart to take effect.");
         ModSettingsManager.RegisterPageFromConfig(this, "Clover API Settings");
+        OverrideOrdering = this.Config.Bind("General", "OverrideOrdering", "",
+            "A comma-separated list of mod GUIDs that specifies the order in which overrides are applied. The leftmost mod in the list has the highest priority. Mods that have conflicting overrides will automatically be added to the end.");
+        ResourceOrdering._ConfigRef(OverrideOrdering);
     }
 
     private void LoadAssets()

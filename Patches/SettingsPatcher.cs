@@ -1,4 +1,6 @@
-﻿using CloverAPI.Content.Data;
+﻿#pragma warning disable Harmony003
+
+using CloverAPI.Content.Data;
 using Panik;
 using System;
 using System.Collections.Generic;
@@ -6,6 +8,8 @@ using System.Reflection;
 using TMPro;
 
 namespace CloverAPI.Patches;
+
+#nullable enable
 
 // ===== Runtime state machine for the hub =====
 internal static class HubState
@@ -631,3 +635,4 @@ internal static class MainMenu_Patches
         LogError($"Exception during {handler} for page '{pageName}' item index {itemIndex}: {ex}");
     }
 }
+#pragma warning restore Harmony003

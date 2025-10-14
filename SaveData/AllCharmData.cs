@@ -1,5 +1,6 @@
 using CloverAPI.Classes;
 using CloverAPI.Content.Charms;
+using CloverAPI.Utils;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 
@@ -25,7 +26,7 @@ public class AllCharmData : JsonPersistentData
 
     public CharmData GetCharmDataByGUID(string guid)
     {
-        if (!this.Entries.TryGetValue(guid, out CharmData data))
+        if (!this.Entries.TryGetValueNoCase(guid, out CharmData data))
         {
             data = new CharmData();
             this.Entries[guid] = data;

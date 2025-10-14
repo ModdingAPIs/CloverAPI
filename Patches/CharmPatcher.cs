@@ -95,7 +95,7 @@ internal class CharmPatcher
             {
                 if (seen < replaceAmount)
                 {
-                    yield return new CodeInstruction(OpCodes.Ldc_I4, CharmManager.TotalCharms);
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(CharmManager), nameof(CharmManager.NewCount)));
                 }
                 else
                 {

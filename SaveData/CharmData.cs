@@ -1,3 +1,4 @@
+using CloverAPI.Utils;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Numerics;
@@ -10,7 +11,7 @@ public class CharmData
 
     public T Get<T>(string key, T defaultValue = default)
     {
-        if (this.Data.TryGetValue(key, out object value))
+        if (this.Data.TryGetValueNoCase(key, out object value))
         {
             if (value is T tValue)
             {

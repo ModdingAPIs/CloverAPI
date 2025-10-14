@@ -15,7 +15,7 @@ internal class TranslationPatcher
             return true;
         }
 
-        if (LocalizationManager.TryGetValue(key, out string value))
+        if (LocalizationManager.TryGetValueNoCase(key, out string value))
         {
             __result = value;
             return false;

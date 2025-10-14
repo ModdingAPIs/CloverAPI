@@ -1,4 +1,5 @@
 using CloverAPI.Classes;
+using CloverAPI.Utils;
 using System.Collections.Generic;
 
 namespace CloverAPI.Content.Strings;
@@ -24,9 +25,9 @@ public static class LocalizationManager
         return key;
     }
 
-    public static bool TryGetValue(string key, out string value)
+    public static bool TryGetValueNoCase(string key, out string value)
     {
-        if (Translations.TryGetValue(key, out StringSource src))
+        if (Translations.TryGetValueNoCase(key, out StringSource src))
         {
             if (src is VanillaLocalizedString)
             {

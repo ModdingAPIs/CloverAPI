@@ -53,7 +53,7 @@ public static class AssetBundleUtils
 
     public static AssetBundle LoadAssetBundle(string path)
     {
-        if (LoadedAssetBundles.TryGetValue(path, out AssetBundle assetBundle))
+        if (LoadedAssetBundles.TryGetValueNoCase(path, out AssetBundle assetBundle))
         {
             return assetBundle;
         }

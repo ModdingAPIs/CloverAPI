@@ -19,6 +19,8 @@ public static class CharmManager
             ? (int)Identifier.count - 1
             : (int)Identifier.count + CustomCharms.Count; // count is included because we add new charms after it
 
+    public static int NewCount => MaxId + 1;
+
     public static int TotalCharms =>
         (int)Identifier.count - 1 + CustomCharms.Count; // count is included because we add new charms after it
 
@@ -114,7 +116,7 @@ public static class CharmManager
         Dictionary<Identifier, Identifier> remaps = new();
         foreach (KeyValuePair<string, Identifier> pair in oldMap)
         {
-            if (newMap.TryGetValue(pair.Key, out Identifier newId))
+            if (newMap.TryGetValueNoCase(pair.Key, out Identifier newId))
             {
                 if (newId != pair.Value)
                 {
@@ -140,7 +142,7 @@ public static class CharmManager
 
     public static CharmBuilder GetCharmByGUID(string guid)
     {
-        if (GUIDToId.TryGetValue(guid, out Identifier id))
+        if (GUIDToId.TryGetValueNoCase(guid, out Identifier id))
         {
             return GetCharmByID(id);
         }
@@ -170,7 +172,7 @@ public static class CharmManager
 
     public static Identifier GetCharmIDByGUID(string guid)
     {
-        if (GUIDToId.TryGetValue(guid, out Identifier id))
+        if (GUIDToId.TryGetValueNoCase(guid, out Identifier id))
         {
             return id;
         }
