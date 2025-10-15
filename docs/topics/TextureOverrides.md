@@ -1,4 +1,4 @@
-# TextureOverrides
+# 🖼️ Texture Overrides
 
 <show-structure for="chapter" depth="2"/>
 
@@ -7,7 +7,7 @@ Documentation for overriding in-game textures with custom image files.
 </link-summary>
 
 **Code Reference**  
-`namespace: CloverAPI.Content.Textures`
+`namespace: CloverAPI.Content.Textures`  
 `class: TextureManager`
 
 You can override in-game textures with your own custom image files using the `TextureManager` class.
