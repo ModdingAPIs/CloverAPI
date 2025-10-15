@@ -1066,6 +1066,7 @@ public class ModSettingsManager
     /// <summary>
     /// Legacy overload that infers the owner from the calling assembly. Prefer <see cref="RegisterPage(BaseUnityPlugin, string, Action{PageBuilder})" />.
     /// </summary>
+    [Obsolete("Use RegisterPage(BaseUnityPlugin, string, Action<PageBuilder>) instead. This overload infers the owner from the calling assembly, which is fragile and may break in certain scenarios.")]
     public static PageBuilder RegisterPage(string name, Action<PageBuilder> configure)
     {
         var owner = ResolveOwnerForLegacyCall(Assembly.GetCallingAssembly());
@@ -1106,6 +1107,7 @@ public class ModSettingsManager
     /// <summary>
     /// Legacy overload that infers the owner from the calling assembly. Prefer <see cref="RegisterPage(BaseUnityPlugin, string, string[], string[], Action{PageBuilder})" />.
     /// </summary>
+    [Obsolete("Use RegisterPageFromConfig(BaseUnityPlugin, string, string[], string[], Action<PageBuilder>) instead. This overload infers the owner from the calling assembly, which is fragile and may break in certain scenarios.")]
     public static PageBuilder RegisterPageFromConfig(string name, string[] ignoredKeys, string[] ignoredCategories, Action<PageBuilder>? configure = null)
     {
         var owner = ResolveOwnerForLegacyCall(Assembly.GetCallingAssembly());

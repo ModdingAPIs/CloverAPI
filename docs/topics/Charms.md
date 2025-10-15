@@ -6,6 +6,10 @@
 Documentation for adding custom Charms to CloverPit using CloverAPI.
 </link-summary>
 
+**Code Reference**  
+`namespace: CloverAPI.Content.Charms`  
+`class: CharmManager`
+
 ## Overview
 
 Adding custom Charms to CloverPit is made easy with CloverAPI.  

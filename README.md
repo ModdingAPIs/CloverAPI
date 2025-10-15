@@ -26,7 +26,7 @@ If you're a mod developer looking to use CloverAPI, here are some resources to h
 - See the [BepInEx](https://docs.bepinex.dev/api/index.html)
   and [Harmony](https://harmony.pardeike.net/articles/intro.html) docs for the basics of modding.
 - See the [CloverAPI documentation](https://ingoh.net/cloverapi/) for more information on how to use the API.
-- Ask around in the [CloverPit Discord](https://discord.gg/zTAZ9erd5g)'s modding channel if you need help.
+- Ask around in the [Panik Games Discord](https://discord.gg/ytgv)'s modding channel if you need help.
 - Check out the [Example Mod](https://github.com/IngoHHacks/CloverPitExampleMod) for a basic mod structure and some
   example usages of the API.
 
@@ -47,5 +47,12 @@ See [LICENSE](LICENSE) for more information.
 ## Credits
 - IngoH - Project lead, maintainer, and developer
 - pharmacomaniac (a.k.a. zapybibby) - Settings integration
+- Matteo & Lorenzo - The devs of CloverPit!
 
 Thanks to everyone who provided feedback and helped to test the API!
+
+## Fun Fact
+The name "CloverAPI" is a portmanteau of "CloverPit" and "API".  
+Really creative, I know. Sometimes I amaze even myself.
+
+Let's go gambling! 🍀

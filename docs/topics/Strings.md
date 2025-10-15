@@ -6,6 +6,10 @@
 Documentation for adding custom strings and translations to CloverPit using CloverAPI.
 </link-summary>
 
+**Code Reference**  
+`namespace: CloverAPI.Content.Strings`  
+`classes: StringManager | LocalizationManager`
+
 ## Overview
 
 Sometimes, you may want dynamic text in your mod, or you may want to support multiple languages. CloverAPI provides an

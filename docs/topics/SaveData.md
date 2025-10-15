@@ -6,6 +6,10 @@
 Documentation for storing persistent data to CloverPit using CloverAPI.
 </link-summary>
 
+**Code Reference**  
+`namespace: CloverAPI.Content.Data`  
+`class: PersistentDataManager`
+
 CloverAPI provides a simple way to store persistent data using key-value pairs. This is useful for saving player
 progress, settings, or any other data that needs to persist between game sessions.
 

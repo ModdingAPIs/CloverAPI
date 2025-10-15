@@ -12,6 +12,9 @@
         <toc-element topic="Charms.md"/>
         <toc-element topic="Strings.md"/>
         <toc-element topic="SaveData.md"/>
+        <toc-element topic="Settings.md"/>
+        <toc-element topic="AudioOverrides.md"/>
+        <toc-element topic="TextureOverrides.md"/>
     </toc-element>
     <toc-element topic="Data.md">
     </toc-element>

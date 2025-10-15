@@ -11,3 +11,6 @@ Start page of content documentation.
 - [Charms](Charms.md)
 - [Strings & Translations](Strings.md)
 - [Persistent Data Storage](SaveData.md)
+- [Settings & Configuration](Settings.md)
+- [Audio Overrides](AudioOverrides.md)
+- [Texture Overrides](TextureOverrides.md)
