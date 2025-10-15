@@ -7,6 +7,7 @@ using BepInEx.Configuration;
 using CloverAPI.Classes;
 using CloverAPI.Utils;
 using System.Linq;
+using Object = System.Object;
 
 namespace CloverAPI.Content.Data;
 
@@ -494,6 +495,13 @@ public class ModSettingsManager
             if (maxScaled < minScaled)
                 throw new ArgumentOutOfRangeException(nameof(maxPercent), "maxPercent must be greater than or equal to minPercent.");
 
+            int RoundOnNonBounds(int value)
+            {
+                if (value == minScaled || value == maxScaled)
+                    return value;
+                return Scale(MathUtils.RoundToMultipleOf(Unscale(value), step));
+            }
+
             string FormatPercentLabel(int scaledValue)
             {
                 float actual = Unscale(scaledValue) * scale;
@@ -518,6 +526,7 @@ public class ModSettingsManager
                 min: minScaled,
                 max: maxScaled,
                 wrap: wrap,
+                normalizer: RoundOnNonBounds,
                 valueFormatter: FormatPercentLabel,
                 onChanged: wrappedOnChanged);
         }
@@ -1171,7 +1180,7 @@ public class ModSettingsManager
                     }
                     GetScaleValues(min, max, out float step, out int decimalPlaces, out bool isPercent, out float scale);
 
-                    builder.Percent(entry.Key.Key, (ConfigEntry<float>)entry.Value, min, max, step, decimalPlaces: decimalPlaces, scale: scale);
+                    builder.Percent(entry.Key.Key, (ConfigEntry<float>)entry.Value, min, max, step, decimalPlaces: decimalPlaces, scale: scale, showPercent: isPercent);
                 }
 
                 else if (v is string)
@@ -1184,10 +1193,9 @@ public class ModSettingsManager
                 }
                 else if (v is Enum)
                 {
-                    var configEntry = (ConfigEntry<Enum>)entry.Value;
-                    var enumType = configEntry.Value.GetType();
-                    var enumValues = Enum.GetValues(enumType).Cast<Enum>().ToArray();
-                    builder.Cycle(entry.Key.Key, configEntry, enumValues);
+                    var configEntry = entry.Value;
+                    var enumType = entry.Value.SettingType;
+                    builder.Cycle(entry.Key.Key, () => (Enum)configEntry.BoxedValue, value => configEntry.BoxedValue = value, Enum.GetValues(enumType).Cast<Enum>().ToArray());
                 }
                 // Other types are not supported by default and ignored.
             }
@@ -1203,12 +1211,10 @@ public class ModSettingsManager
         if (max < min)
             throw new ArgumentOutOfRangeException(nameof(max), "max must be greater than or equal to min.");
         // Determine if the range is suitable for percentage display.
-        var isRawPct = min is >= 0f and < 50f && max is > 50f and <= 500f;
-        var isFloatPct = min is >= 0f and < 0.5f && max is > 0.5f and <= 5f;
-        isPercent = isRawPct || isFloatPct;
-        scale = isFloatPct ? 100f : 1f;
+        isPercent = min is >= 0f and < 0.5f && max is > 0.5f and <= 5f;
+        scale = isPercent ? 100f : 1f;
         var delta = max - min;
-        var roughStep = delta / 20f;
+        var roughStep = delta / 100f;
         step = MathUtils.RoundToNearestSignificantFive(roughStep);
         decimalPlaces = Math.Max(0, Math.Min(4, Mathf.RoundToInt(Mathf.Log10(1f / step))));
     }   

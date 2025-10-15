@@ -7,13 +7,13 @@ API for CloverPit
 You can find the Clover API on Thunderstore:
 - [CloverAPI on Thunderstore](https://thunderstore.io/c/clover-pit/p/ModdingAPIs/CloverAPI/)
 
-## Automatic Installation
+### Automatic Installation
 
 Just search for "CloverAPI" in one of these mod managers and install it like any other mod:
 - [r2modman](https://ingoh.net/r2modman.zip) (Unofficial build until the next release is out)
 - [Thunderstore Mod Manager](https://www.overwolf.com/app/thunderstore-thunderstore_mod_manager)
 
-## Manual Installation
+### Manual Installation
 
 Download the latest release from Thunderstore or GitHub and place the DLL in your `BepInEx/plugins` folder like any other mod.
 
@@ -41,8 +41,26 @@ Please respect this request.
 The APIs distribution contains Newtonsoft JSON. Please do not include it in your mod as well, as it may cause conflicts.
 Of course, you can still use it in your mod, just don't include it in the distribution.
 
+### Contributing
+Just fork the repository, make your changes, and open a pull request. No special process is needed. Although no strict
+code style is enforced, please try to keep your code clean and readable. Comments are appreciated.
+
 ## License
-See [LICENSE](LICENSE) for more information.
+MIT License.  
+See [LICENSE](LICENSE) for more information.  
+You may freely distribute CloverAPI to on other platforms. In fact, you're encouraged to do so because I sure won't be uploading it to Nexus Mods or any other platform. Nexus Mods is too much of a hassle and other platforms aren't popular enough to be worth the effort. Maybe once Nexus Mods stops requiring a 5-page survey to upload a mod, I'll consider it.  
+Although the MIT license allows you to do pretty much anything with the code, please don't claim it as your own or rebrand it unless you have made significant changes. Just fork the repository and make your changes there. Thanks!  
+
+### TL;DR of the License
+You can do whatever you want with the code, as long as you include the original license.
+The only thing you can't do is sue me for anything related to the code.
+If something breaks, it's your problem, not mine.
+But hey, it's open source, so you can always fix it yourself or ask for help.
+
+### License for Builds
+You don't need to include the license file when distributing official builds (e.g. releases on GitHub or Thunderstore). They are free from any restrictions.
+However, if you build the code yourself, you need to include the license file when distributing it.
+Please also include the license file for modified builds.
 
 ## Credits
 - IngoH - Project lead, maintainer, and developer
