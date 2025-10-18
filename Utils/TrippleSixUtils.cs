@@ -41,7 +41,7 @@ public static class TrippleSixUtils
 
     public static void SetTrippleSixMaxChance(float value)
     {
-        if (TrippleSixField == null)
+        if (TrippleSixMaxField == null)
             throw new MissingFieldException("_666ChanceMaxAbsolute field not found.");
         value = Mathf.Clamp(value, 0f, 1f);
         // 0.1 --> 10%, 1.0 --> 100%

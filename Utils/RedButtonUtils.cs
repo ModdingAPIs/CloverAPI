@@ -19,7 +19,7 @@ public static class RedButtonUtils
     public static void SetRedButtonMultiplier(float value)
     {
         if (RedButtonMultiplier == null)
-            throw new MissingFieldException("SettingsData._redButtonActivationsMultiplier fields not found.");
+            throw new MissingFieldException("SettingsData._redButtonActivationsMultiplier field not found.");
 
         RedButtonMultiplier.SetValue(RedButtonMultiplier, value);
     }
