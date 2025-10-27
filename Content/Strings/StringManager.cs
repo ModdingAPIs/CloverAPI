@@ -18,7 +18,7 @@ public class StringManager
     private static readonly Dictionary<string, Tuple<StringSource, SantizationKind, SanitizationSubKind>>
         ConditionalStringsLate = new();
 
-    public static void Register(string key, StringSource value, bool late = false)
+    public static void RegisterString(string key, StringSource value, bool late = false)
     {
         if (late)
         {

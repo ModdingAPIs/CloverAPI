@@ -9,7 +9,7 @@ public class PersistentDataManager
 {
     internal static Dictionary<string, PersistentData> PersistentDataItems = new();
 
-    public static void Register(string name, PersistentData data)
+    public static void RegisterData(string name, PersistentData data)
     {
         PersistentDataItems[name] = data;
     }

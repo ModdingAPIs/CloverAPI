@@ -18,6 +18,7 @@ The best way to get started is to get the [Example Mod](https://github.com/IngoH
 
 ## Features
 
+### Code-Based API
 - [Charms](Charms.md)
 - [Strings & Translations](Strings.md)
 - [Persistent Data Storage](SaveData.md)
@@ -25,11 +26,15 @@ The best way to get started is to get the [Example Mod](https://github.com/IngoH
 - [Audio Overrides](AudioOverrides.md)
 - [Texture Overrides](TextureOverrides.md)
 
+### Non-Code-Based API
+- [Languages](NonCodeLanguages.md)
+
 ## Feature Stability
 | Feature                  | Stability       | Notes                                                                                         |
 |--------------------------|-----------------|-----------------------------------------------------------------------------------------------|
 | Charms                   | 🟩 Good         | Core mechanics are stable, but testing is ongoing. New features also are being added.         |
 | Strings & Translations   | 🟨 Decent       |                                                                                               |
+| Languages                | 🟨 Decent       |                                                                                               |
 | Persistent Data Storage  | 🟨 Decent       |                                                                                               |
 | Settings & Configuration | 🟧 Moderate     | Recently added feature adapted from pharmacomaniac's ModSettingsExtender. Needs more testing. |
 | Audio Overrides          | 🟧 Moderate     | Simple implementation that should work in most cases. More testing is needed.                 |

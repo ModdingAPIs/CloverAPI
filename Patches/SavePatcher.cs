@@ -38,7 +38,6 @@ internal class SavePatcher
         {
             File.Copy(__result, moddedFile);
         }
-
         __result = moddedFile;
     }
 }

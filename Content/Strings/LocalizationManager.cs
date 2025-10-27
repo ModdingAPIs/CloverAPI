@@ -8,7 +8,7 @@ public static class LocalizationManager
 {
     public static Dictionary<string, StringSource> Translations = new();
 
-    public static string Register(string key, StringSource value)
+    public static string RegisterTranslation(string key, StringSource value)
     {
         value.SetKey(key);
         Translations[key] = value;

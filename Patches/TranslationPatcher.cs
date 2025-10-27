@@ -15,13 +15,19 @@ internal class TranslationPatcher
             return true;
         }
 
+        var cont = true;
         if (LocalizationManager.TryGetValueNoCase(key, out string value))
         {
             __result = value;
-            return false;
+            cont = false;
+        };
+        if (LanguageManager.IsCustomLanguage && LanguageManager.TryGetTerm(key, out string customValue))
+        {
+            __result = customValue;
+            cont = false;
         }
 
-        return true;
+        return cont;
     }
 
     [HarmonyPatch(typeof(Strings), nameof(Strings.Sanitize))]
@@ -38,5 +44,21 @@ internal class TranslationPatcher
         Strings.SanitizationSubKind subKind)
     {
         StringManager.SanitizeLate(ref __result, santizationKind, subKind);
+    }
+    
+    // This one is only used for the dynamic sprites for the charms & phone texts
+    // We'll fall back to the English one if a custom language is used since localized sprites
+    // are not supported yet.
+    [HarmonyPatch(typeof(Translation), nameof(Translation.LanguageGet))]
+    [HarmonyPrefix]
+    internal static bool Translation_LanguageGet_Prefix(ref Translation.Language __result)
+    {
+        if (LanguageManager.IsCustomLanguage)
+        {
+            __result = Translation.Language.English;
+            return false;
+        }
+
+        return true;
     }
 }

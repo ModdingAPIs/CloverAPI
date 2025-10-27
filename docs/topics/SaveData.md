@@ -19,7 +19,7 @@ You can use the `PersistentData` class as an interface to save and load data. In
 class that automatically serializes and deserializes data to and from JSON format is sufficient. If not, you can
 manually override the `ToString()` and `FromString(string data)` methods to implement your own serialization format.
 To register the persistent data to save and load automatically alongside the game's own save data, use the
-`PersistentDataManager.Register(string key, PersistentData data)` method. The `key` parameter is a unique identifier for
+`PersistentDataManager.RegisterData(string key, PersistentData data)` method. The `key` parameter is a unique identifier for
 the data and used as the filename for saving the data.  
 You can edit the values however you want, but if you only want to update it when the game is saved, you can override the
 `BeforeSave()`. Likewise, you can use `AfterLoad()`, `AfterSave()`, and `BeforeLoad()` to run code at those times.  

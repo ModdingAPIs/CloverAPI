@@ -3,6 +3,7 @@ using CloverAPI.Assets;
 using CloverAPI.Content.Builders;
 using CloverAPI.Content.Charms;
 using CloverAPI.Content.Data;
+using CloverAPI.Content.Strings;
 using CloverAPI.Internal;
 using CloverAPI.SaveData;
 using CloverAPI.Utils;
@@ -19,10 +20,10 @@ public class Plugin : BaseUnityPlugin
 {
     public const string PluginGuid = "ModdingAPIs.cloverpit.CloverAPI";
     public const string PluginName = "Clover API";
-    public const string PluginVer = "0.1.1";
+    public const string PluginVer = "0.1.2";
     internal const string MainContentFolder = "CloverAPI_Content";
 
-    private const int FONT_SIZE = 24;
+    private const int FONT_SIZE = 16;
 
     internal static ManualLogSource Log;
     internal static readonly Harmony Harmony = new(PluginGuid);
@@ -44,8 +45,9 @@ public class Plugin : BaseUnityPlugin
         ImagePath = Path.Combine(PluginPath, MainContentFolder, "Images");
         MakeConfig();
         LoadAssets();
-        PersistentDataManager.Register("CharmMappings", CharmMappings.Instance);
-        PersistentDataManager.Register("CharmData", AllCharmData.Instance);
+        GameUtils.OnGameReady += OnReady;
+        PersistentDataManager.RegisterData("CharmMappings", CharmMappings.Instance);
+        PersistentDataManager.RegisterData("CharmData", AllCharmData.Instance);
     }
 
     private void Update()
@@ -93,6 +95,11 @@ public class Plugin : BaseUnityPlugin
         }
     }
 
+    private void OnReady()
+    {
+        LoadData();
+    }
+
     private void OnEnable()
     {
         Harmony.PatchAll();
@@ -111,7 +118,7 @@ public class Plugin : BaseUnityPlugin
         {
             font = FontsMaster.instance.GetFontNormal(0).sourceFontFile,
             fontSize = FONT_SIZE,
-            normal = { textColor = new Color(0.3f, 0.5f, 0.3f) }
+            normal = { textColor = new Color(0.2f, 0.3f, 0.2f) }
         };
         GUI.Label(new Rect(32f, 30f, 1000f, 40f), $"Modded, {PluginName} v{PluginVer}", style);
     }
@@ -140,5 +147,25 @@ public class Plugin : BaseUnityPlugin
         LogError("AssetBundle not found at " + text + "!");
         LogError(
             $"Make sure you have the '{DataPath}' folder in the same directory as the plugin DLL with the 'templatemodel' AssetBundle inside it.");
+    }
+
+    private void LoadData()
+    {
+        LoadTranslations();
+    }
+    
+    private void LoadTranslations()
+    {
+        string root = PluginPath;
+        var trFiles = Directory.GetFiles(root, "*.loc",
+            SearchOption.AllDirectories);
+        foreach (var file in trFiles)
+        {
+            LanguageManager.LoadFromFile(file);
+        }
+        if (trFiles.Length > 0)
+        {
+            LogInfo($"Loaded {trFiles.Length} translation files.");
+        }
     }
 }

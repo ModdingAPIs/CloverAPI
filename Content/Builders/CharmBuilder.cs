@@ -362,9 +362,9 @@ public class CharmBuilder
 
         obj.Initialize(isNewGame, this._category, this.id, this._archetype, this._isInstantPowerup, this._maxBuyTimes,
             this._storeRerollChance, this._startingPrice, this._unlockPrice,
-            LocalizationManager.Register("MODDED_CHARM_" + this.guid + "_NAME", this._name),
-            LocalizationManager.Register("MODDED_CHARM_" + this.guid + "_DESC", this._description),
-            LocalizationManager.Register("MODDED_CHARM_" + this.guid + "_MISSION", this._unlockMission), this._onEquip,
+            LocalizationManager.RegisterTranslation("MODDED_CHARM_" + this.guid + "_NAME", this._name),
+            LocalizationManager.RegisterTranslation("MODDED_CHARM_" + this.guid + "_DESC", this._description),
+            LocalizationManager.RegisterTranslation("MODDED_CHARM_" + this.guid + "_MISSION", this._unlockMission), this._onEquip,
             this._onUnequip, this._onPutInDrawer, this._onThrowAway);
     }
 
