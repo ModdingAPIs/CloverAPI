@@ -10,7 +10,7 @@ You can find the Clover API on Thunderstore:
 ### Automatic Installation
 
 Just search for "CloverAPI" in one of these mod managers and install it like any other mod:
-- [r2modman](https://ingoh.net/r2modman.zip) (Unofficial build until the next release is out)
+- [r2modman](https://github.com/ebkr/r2modmanPlus/releases/latest)
 - [Thunderstore Mod Manager](https://www.overwolf.com/app/thunderstore-thunderstore_mod_manager)
 
 ### Manual Installation
