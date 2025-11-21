@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.0
+- Removed the watermark text since the game itself now shows modded status
+- Fixed `ModSettingsManager` having the wrong namespace.
+
 ## 0.1.1
 - Integrated settings by pharmacomaniac a.k.a. zapybibby
 - Added support for audio and texture overrides

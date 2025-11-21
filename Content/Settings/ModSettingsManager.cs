@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Reflection;
-using BepInEx.Bootstrap;
+﻿using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using CloverAPI.Classes;
 using CloverAPI.Utils;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using Object = System.Object;
+using System.Reflection;
 
-namespace CloverAPI.Content.Data;
+namespace CloverAPI.Content.Settings;
 
 
 /// <summary>
@@ -55,9 +54,9 @@ public class ModSettingsManager
 
         internal Item(Func<string>? label, Action? onSelect, Action<int>? onAdjust)
         {
-            Label = label;
-            OnSelect = onSelect;
-            OnAdjust = onAdjust;
+            this.Label = label;
+            this.OnSelect = onSelect;
+            this.OnAdjust = onAdjust;
         }
 
         /// <summary>
@@ -90,10 +89,10 @@ public class ModSettingsManager
             if (string.IsNullOrWhiteSpace(normalizedName))
                 throw new ArgumentException("Normalized page name must not be empty.", nameof(normalizedName));
 
-            Name = name;
-            OwnerGuid = ownerGuid;
-            OwnerName = ownerName;
-            NormalizedName = normalizedName;
+            this.Name = name;
+            this.OwnerGuid = ownerGuid;
+            this.OwnerName = ownerName;
+            this.NormalizedName = normalizedName;
         }
 
         /// <summary>The display name shown at the top of the page.</summary>
@@ -106,7 +105,7 @@ public class ModSettingsManager
         internal string NormalizedName { get; }
 
         /// <summary>The list of rows that will appear underneath the title.</summary>
-        public List<Item> Items => items;
+        public List<Item> Items => this.items;
 
         internal Item AddItem(Func<string>? label, Action? onSelect, Action<int>? onAdjust)
         {
@@ -118,7 +117,7 @@ public class ModSettingsManager
             if (item == null)
                 throw new ArgumentNullException(nameof(item));
 
-            items.Add(item);
+            this.items.Add(item);
             return item;
         }
     }
@@ -140,14 +139,14 @@ public class ModSettingsManager
         /// <summary>
         /// The underlying page that will be registered with the hub.
         /// </summary>
-        public Page BuiltPage => page;
+        public Page BuiltPage => this.page;
 
         /// <summary>
         /// Adds an arbitrary item to the page. Useful when you want full control over behavior.
         /// </summary>
         public PageBuilder AddItem(Func<string>? label, Action? onSelect = null, Action<int>? onAdjust = null)
         {
-            page.AddItem(label, onSelect, onAdjust);
+            this.page.AddItem(label, onSelect, onAdjust);
             return this;
         }
 

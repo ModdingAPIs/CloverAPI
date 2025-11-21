@@ -63,7 +63,7 @@ However, if you build the code yourself, you need to include the license file wh
 Please also include the license file for modified builds.
 
 ## Credits
-- IngoH - Project lead, maintainer, and developer
+- IngoH - Project lead, maintainer, and developer, also the best player of CloverPit in the world, obviously. 😎
 - pharmacomaniac (a.k.a. zapybibby) - Settings integration
 - Matteo & Lorenzo - The devs of CloverPit!
 

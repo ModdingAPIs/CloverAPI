@@ -3,11 +3,11 @@ using CloverAPI.Assets;
 using CloverAPI.Content.Builders;
 using CloverAPI.Content.Charms;
 using CloverAPI.Content.Data;
+using CloverAPI.Content.Settings;
 using CloverAPI.Content.Strings;
 using CloverAPI.Internal;
 using CloverAPI.SaveData;
 using CloverAPI.Utils;
-using Panik;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,7 +20,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string PluginGuid = "ModdingAPIs.cloverpit.CloverAPI";
     public const string PluginName = "Clover API";
-    public const string PluginVer = "0.1.2";
+    public const string PluginVer = "0.2.0";
     internal const string MainContentFolder = "CloverAPI_Content";
 
     private const int FONT_SIZE = 16;
@@ -110,17 +110,6 @@ public class Plugin : BaseUnityPlugin
     {
         Harmony.UnpatchSelf();
         LogInfo($"Unloaded {PluginName}!");
-    }
-
-    private void OnGUI()
-    {
-        GUIStyle style = new(GUI.skin.label)
-        {
-            font = FontsMaster.instance.GetFontNormal(0).sourceFontFile,
-            fontSize = FONT_SIZE,
-            normal = { textColor = new Color(0.2f, 0.3f, 0.2f) }
-        };
-        GUI.Label(new Rect(32f, 30f, 1000f, 40f), $"Modded, {PluginName} v{PluginVer}", style);
     }
 
     private void MakeConfig()

@@ -1,6 +1,7 @@
 ﻿#pragma warning disable Harmony003
 
 using CloverAPI.Content.Data;
+using CloverAPI.Content.Settings;
 using Panik;
 using System;
 using System.Collections.Generic;
