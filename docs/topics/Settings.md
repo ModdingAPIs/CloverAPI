@@ -43,6 +43,7 @@ When using automatic settings registration, the following `ConfigEntry<T>` types
 | `float`          | Percent         | If `AcceptableValuesRange<float>` is set, min and max are taken from it. If min and max are in range [0-0.5]-[0.5-5], the setting is shown as a percentage and a scale factor of 100 is applied. In all other cases, the setting is shown as a normal float. Step is based on the difference between min and max with the last significant digit being rounded to the nearest 5. |
 | `string`         | Cycle           | If `AcceptableValuesList<string>` is set, the setting is shown as a cycle with the provided values. Otherwise, it is ignored and not added to the page. Text input is currently not supported, but planned for a future update.                                                                                                                                                  |
 | `Enum` (any)     | Cycle           | The setting is shown as a cycle with all enum values.                                                                                                                                                                                                                                                                                                                            |
+| `KeybindBinding` | Keybind         | Unified keybind picker for keyboard or controller input. Stored as `Device:Element` (e.g. `Keyboard:Space`, `Joystick:LeftTrigger`).                                                                                                                                                                                                                                         |
 
 ```C#
 using BepInEx;
@@ -150,6 +151,34 @@ The `options` or `values` parameter is an array or list of possible values for t
 The optional `valueFormatter` parameter is a function that takes the current value and returns a formatted string for display.  
 The optional `onChanged` parameter is a callback that is invoked whenever the setting is changed, receiving the new value as a parameter.  
 The optional `comparer` parameter allows you to provide a custom equality comparer for the values. Default is `EqualityComparer<T>.Default`.
+
+#### Keybind
+`Keybind(string label, ConfigEntry<KeybindBinding> entry, bool allowKeyboard = true, bool allowJoystickButtons = true, bool allowJoystickAxes = true, Func<KeybindBinding, string>? valueFormatter = null, Action<KeybindBinding>? onChanged = null)`  
+Adds a keybind field that listens to keyboard or controller and saves the first input it sees (click/Enter to start “Listening…”). Mouse bindings are not captured by the picker.  
+The value is stored as a `KeybindBinding`, serialized as `Device:Element` (e.g. `Keyboard:Space`, `Joystick:LeftTrigger`). If you prefer to seed defaults by hand, you can pass a string to `Config.Bind` in that format.  
+Use the `allow*` flags to disable keyboard input or joystick buttons/axes if you need tighter control.  
+Keyboard `Esc`, `Backspace`, `Return`, and OS keys plus controller `Select`/`Start`/`Home` are filtered out to avoid trapping menu navigation buttons.  
+Simple Keybind Example:
+```csharp
+ConfigEntry<KeybindBinding> dodgeKey = Config.Bind(
+    "Controls",
+    "Dodge",
+    new KeybindBinding(Controls.InputKind.Keyboard, nameof(Controls.KeyboardElement.Space)),
+    "Bind the dodge action (Keyboard/Controller).");
+
+ModSettingsManager.RegisterPage(this, "Example Mod", page =>
+{
+    page.Keybind("Dodge", dodgeKey);
+});
+```
+Optional `valueFormatter` lets you customize how the current binding is displayed.  
+Optional `onChanged` lets you provide a callback that runs whenever the player saves a new binding (e.g., update UI or sync state). Example with `onChanged`:
+```csharp
+page.Keybind(
+    "Dodge",
+    dodgeKey,
+    onChanged: binding => Logger.LogInfo($"Dodge rebound to {binding}"));
+```
 
 ### Non-Config Settings
 If you want to add settings that are not backed by `ConfigEntry<T>`, you can use the getter/setter-based overloads of the above methods. These require you to manage the storage and retrieval of the setting values yourself.  

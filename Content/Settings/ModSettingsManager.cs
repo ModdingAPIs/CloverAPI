@@ -4,11 +4,128 @@ using CloverAPI.Classes;
 using CloverAPI.Utils;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using Panik;
+
+#nullable enable
 
 namespace CloverAPI.Content.Settings;
+
+[System.ComponentModel.TypeConverter(typeof(KeybindBindingConverter))]
+public readonly struct KeybindBinding : IEquatable<KeybindBinding>
+{
+    public Controls.InputKind Device { get; }
+
+    public string Element { get; }
+
+    public bool IsEmpty => Device == Controls.InputKind.Noone || string.IsNullOrWhiteSpace(Element);
+
+    public KeybindBinding(Controls.InputKind device, string element)
+    {
+        Device = device;
+        Element = element ?? string.Empty;
+    }
+
+    public static KeybindBinding None => new(Controls.InputKind.Noone, string.Empty);
+
+    public static KeybindBinding FromKeyboard(Controls.KeyboardElement element) => new(Controls.InputKind.Keyboard, element.ToString());
+
+    public static KeybindBinding FromMouse(Controls.MouseElement element) => new(Controls.InputKind.Mouse, element.ToString());
+
+    public static KeybindBinding FromJoystick(Controls.JoystickElement element) => new(Controls.InputKind.Joystick, element.ToString());
+
+    public bool TryGetKeyboard(out Controls.KeyboardElement element) => TryGetElement(Controls.InputKind.Keyboard, out element);
+
+    public bool TryGetMouse(out Controls.MouseElement element) => TryGetElement(Controls.InputKind.Mouse, out element);
+
+    public bool TryGetJoystick(out Controls.JoystickElement element) => TryGetElement(Controls.InputKind.Joystick, out element);
+
+    private bool TryGetElement<TEnum>(Controls.InputKind expected, out TEnum element) where TEnum : struct, Enum
+    {
+        element = default;
+        if (Device != expected)
+            return false;
+
+        return Enum.TryParse(Element ?? string.Empty, true, out element);
+    }
+
+    public static KeybindBinding Parse(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+            return None;
+
+        string text = (raw ?? string.Empty).Trim();
+        if (text.Equals("None", StringComparison.OrdinalIgnoreCase))
+            return None;
+
+        string[] parts = text.Split(new[] { ':' }, 2);
+        if (parts.Length != 2)
+            return None;
+
+        if (!Enum.TryParse(parts[0], true, out Controls.InputKind device))
+            return None;
+
+        string element = parts[1].Trim();
+        if (string.IsNullOrWhiteSpace(element))
+            return None;
+
+        return new KeybindBinding(device, element);
+    }
+
+    public bool Equals(KeybindBinding other)
+    {
+        return Device == other.Device &&
+               string.Equals(Element, other.Element, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public override bool Equals(object? obj) => obj is KeybindBinding other && Equals(other);
+
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            int hash = 17;
+            hash = (hash * 31) + Device.GetHashCode();
+            hash = (hash * 31) + (Element?.ToLowerInvariant().GetHashCode() ?? 0);
+            return hash;
+        }
+    }
+
+    public override string ToString() => IsEmpty ? "None" : $"{Device}:{Element}";
+}
+
+internal sealed class KeybindBindingConverter : System.ComponentModel.TypeConverter
+{
+    public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
+    {
+        return sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
+    }
+
+    public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
+    {
+        return destinationType == typeof(string) || base.CanConvertTo(context, destinationType);
+    }
+
+    public override object? ConvertFrom(ITypeDescriptorContext? context, System.Globalization.CultureInfo? culture, object value)
+    {
+        if (value is string raw)
+            return KeybindBinding.Parse(raw);
+
+        return base.ConvertFrom(context, culture, value);
+    }
+
+    public override object? ConvertTo(ITypeDescriptorContext? context, System.Globalization.CultureInfo? culture, object? value, Type destinationType)
+    {
+        if (destinationType == typeof(string) && value is KeybindBinding binding)
+            return binding.ToString();
+
+        return base.ConvertTo(context, culture, value, destinationType);
+    }
+}
 
 
 /// <summary>
@@ -27,7 +144,6 @@ namespace CloverAPI.Content.Settings;
 /// });
 /// </code>
 /// </remarks>
-#nullable enable
 public class ModSettingsManager
 {
     private const int MaxAutoDecimalPlaces = 6;
@@ -759,6 +875,91 @@ public class ModSettingsManager
         }
 
         /// <summary>
+        /// Adds a unified keybind row (keyboard / controller) backed by a <see cref="ConfigEntry{T}"/>.
+        /// </summary>
+        public PageBuilder Keybind(
+            string label,
+            ConfigEntry<KeybindBinding> entry,
+            bool allowKeyboard = true,
+            bool allowJoystickButtons = true,
+            bool allowJoystickAxes = true,
+            Func<KeybindBinding, string>? valueFormatter = null,
+            Action<KeybindBinding>? onChanged = null)
+        {
+            if (entry == null)
+                throw new ArgumentNullException(nameof(entry));
+
+            return KeybindInternal(label, () => entry.Value, value => entry.Value = value, allowKeyboard, allowJoystickButtons, allowJoystickAxes, valueFormatter, onChanged);
+        }
+
+        /// <summary>
+        /// Adds a unified keybind row backed by a <see cref="ConfigEntry{String}"/> storing values like "Keyboard:Space".
+        /// </summary>
+        public PageBuilder Keybind(
+            string label,
+            ConfigEntry<string> entry,
+            bool allowKeyboard = true,
+            bool allowJoystickButtons = true,
+            bool allowJoystickAxes = true,
+            Func<KeybindBinding, string>? valueFormatter = null,
+            Action<KeybindBinding>? onChanged = null)
+        {
+            if (entry == null)
+                throw new ArgumentNullException(nameof(entry));
+
+            KeybindBinding Getter() => KeybindBinding.Parse(entry.Value);
+            void Setter(KeybindBinding binding) => entry.Value = binding.ToString();
+
+            return KeybindInternal(label, Getter, Setter, allowKeyboard, allowJoystickButtons, allowJoystickAxes, valueFormatter, onChanged);
+        }
+
+        private PageBuilder KeybindInternal(
+            string label,
+            Func<KeybindBinding> getter,
+            Action<KeybindBinding> setter,
+            bool allowKeyboard,
+            bool allowJoystickButtons,
+            bool allowJoystickAxes,
+            Func<KeybindBinding, string>? valueFormatter,
+            Action<KeybindBinding>? onChanged)
+        {
+            return Keybind(label, getter, setter, allowKeyboard, allowJoystickButtons, allowJoystickAxes, valueFormatter, onChanged);
+        }
+
+        /// <summary>
+        /// Adds a unified keybind row (keyboard / controller) using custom getter/setter delegates.
+        /// </summary>
+        public PageBuilder Keybind(
+            string label,
+            Func<KeybindBinding> getter,
+            Action<KeybindBinding> setter,
+            bool allowKeyboard = true,
+            bool allowJoystickButtons = true,
+            bool allowJoystickAxes = true,
+            Func<KeybindBinding, string>? valueFormatter = null,
+            Action<KeybindBinding>? onChanged = null)
+        {
+            if (label == null)
+                throw new ArgumentNullException(nameof(label));
+            if (getter == null)
+                throw new ArgumentNullException(nameof(getter));
+            if (setter == null)
+                throw new ArgumentNullException(nameof(setter));
+
+            var item = Keybinds.BuildItem(
+                label,
+                getter,
+                setter,
+                allowKeyboard,
+                allowJoystickButtons,
+                allowJoystickAxes,
+                valueFormatter,
+                onChanged);
+            this.page.AddItem(item);
+            return this;
+        }
+
+        /// <summary>
         /// Finalizes the page. Doesn't actually do anything, as pages are registered immediately upon creation. It's
         /// just here for code clarity.
         /// </summary>
@@ -927,6 +1128,338 @@ public class ModSettingsManager
             onChanged?.Invoke(value);
         }
     }
+
+    private static class Keybinds
+    {
+        private const int PlayerIndex = 0;
+        private const string DefaultListeningLabel = "Listening...";
+        private const string DefaultUnboundLabel = "Not set";
+        private const bool DebugLogging = true;
+
+        private static readonly HashSet<Controls.KeyboardElement> BannedKeyboard = new()
+        {
+            Controls.KeyboardElement.Esc,
+            Controls.KeyboardElement.Backspace,
+            Controls.KeyboardElement.Return,
+            Controls.KeyboardElement.LeftWindows,
+            Controls.KeyboardElement.RightWindows,
+            Controls.KeyboardElement.LeftCommand,
+            Controls.KeyboardElement.RightCommand
+        };
+
+        private static readonly HashSet<Controls.JoystickElement> BannedJoystick = new()
+        {
+            Controls.JoystickElement.Select,
+            Controls.JoystickElement.Start,
+            Controls.JoystickElement.Home
+        };
+
+        private sealed class KeybindState
+        {
+            internal string Label = string.Empty;
+            internal Func<KeybindBinding> Getter = null!;
+            internal Action<KeybindBinding> Setter = null!;
+            internal Func<KeybindBinding, string> Formatter = null!;
+            internal Action<KeybindBinding>? OnChanged;
+            internal bool AllowKeyboard;
+            internal bool AllowJoystickButtons;
+            internal bool AllowJoystickAxes;
+        }
+
+        private static KeybindState? activeState;
+
+        internal static Item BuildItem(
+            string label,
+            Func<KeybindBinding> getter,
+            Action<KeybindBinding> setter,
+            bool allowKeyboard,
+            bool allowJoystickButtons,
+            bool allowJoystickAxes,
+            Func<KeybindBinding, string>? valueFormatter,
+            Action<KeybindBinding>? onChanged)
+        {
+            var state = new KeybindState
+            {
+                Label = label ?? string.Empty,
+                Getter = getter,
+                Setter = setter,
+                Formatter = valueFormatter ?? FormatBinding,
+                OnChanged = onChanged,
+                AllowKeyboard = allowKeyboard,
+                AllowJoystickButtons = allowJoystickButtons,
+                AllowJoystickAxes = allowJoystickAxes
+            };
+
+            return new Item(
+                () => FormatLabel(state),
+                () => StartListening(state),
+                _ => StartListening(state));
+        }
+
+        internal static void Tick()
+        {
+            var state = activeState;
+            if (state == null)
+                return;
+
+            if (!TryPoll(state, out var binding))
+                return;
+
+            Apply(state, binding);
+            activeState = null;
+            // Force a menu redraw so the binding text replaces the listening placeholder in the same frame.
+            RefreshMenuLabels();
+        }
+
+        internal static void CancelListening()
+        {
+            activeState = null;
+        }
+
+        private static void StartListening(KeybindState state)
+        {
+            activeState = state;
+            if (DebugLogging)
+                LogInfo($"[Keybinds] Listening started for '{state.Label}'.");
+        }
+
+        private static bool TryPoll(KeybindState state, out KeybindBinding binding)
+        {
+            binding = KeybindBinding.None;
+
+            if (state.AllowKeyboard && TryPollKeyboard(out var key))
+            {
+                binding = KeybindBinding.FromKeyboard(key);
+                return true;
+            }
+
+            if ((state.AllowJoystickButtons || state.AllowJoystickAxes) && TryPollJoystick(state.AllowJoystickButtons, state.AllowJoystickAxes, out var joyBinding))
+            {
+                binding = joyBinding;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TryPollKeyboard(out Controls.KeyboardElement element)
+        {
+            element = Controls.KeyboardElement.Undefined;
+            int total = (int)Controls.KeyboardElement.Count;
+            for (int i = 0; i < total; i++)
+            {
+                var candidate = (Controls.KeyboardElement)i;
+                if (candidate < Controls.KeyboardElement.None || candidate >= Controls.KeyboardElement.Count)
+                    continue;
+
+                if (BannedKeyboard.Contains(candidate))
+                    continue;
+
+                if (Controls.KeyboardButton_PressedGet(PlayerIndex, candidate))
+                {
+                    element = candidate;
+                    if (DebugLogging)
+                        LogInfo($"[Keybinds] Keyboard captured {candidate}.");
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool TryPollJoystick(bool allowButtons, bool allowAxes, out KeybindBinding binding)
+        {
+            binding = KeybindBinding.None;
+            int total = (int)Controls.JoystickElement.Count;
+
+            if (allowButtons)
+            {
+                for (int i = 0; i < total; i++)
+                {
+                    var candidate = (Controls.JoystickElement)i;
+                    if (candidate < Controls.JoystickElement.ButtonDown || candidate >= Controls.JoystickElement.Count)
+                        continue;
+
+                    if (BannedJoystick.Contains(candidate))
+                        continue;
+
+                    bool isTrigger = candidate == Controls.JoystickElement.LeftTrigger || candidate == Controls.JoystickElement.RightTrigger;
+                    if ((Controls.JoystickElement_IsButton(candidate) || isTrigger) && Controls.JoystickButton_PressedGet(PlayerIndex, candidate))
+                    {
+                        binding = KeybindBinding.FromJoystick(candidate);
+                        if (DebugLogging)
+                            LogInfo($"[Keybinds] Joystick captured {candidate}.");
+                        return true;
+                    }
+                }
+            }
+
+            if (allowAxes)
+            {
+                if (Controls.PickStickAxis_Joystick(PlayerIndex, Controls.JoystickElement.LeftStickX, Controls.JoystickElement.LeftStickY, out var picked))
+                {
+                    binding = KeybindBinding.FromJoystick(picked);
+                    return true;
+                }
+
+                if (Controls.PickStickAxis_Joystick(PlayerIndex, Controls.JoystickElement.RightStickX, Controls.JoystickElement.RightStickY, out picked))
+                {
+                    binding = KeybindBinding.FromJoystick(picked);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static void Apply(KeybindState state, KeybindBinding binding)
+        {
+            try
+            {
+                KeybindBinding current = state.Getter();
+                if (current.Equals(binding))
+                    return;
+
+                state.Setter(binding);
+                state.OnChanged?.Invoke(binding);
+            }
+            catch (Exception ex)
+            {
+                LogError($"Failed to apply keybind for '{state.Label}': {ex}");
+            }
+        }
+
+        private static void RefreshMenuLabels()
+        {
+            try
+            {
+                var menu = MainMenuScript.instance;
+                if (menu != null && MainMenuScript.IsEnabled())
+                    menu.OptionsUpdate();
+            }
+            catch (Exception ex)
+            {
+                LogError($"Failed to refresh keybind labels: {ex}");
+            }
+        }
+
+        private static string FormatLabel(KeybindState state)
+        {
+            if (ReferenceEquals(activeState, state))
+                return $"{state.Label}: {DefaultListeningLabel}";
+
+            try
+            {
+                KeybindBinding binding = state.Getter();
+                string value = state.Formatter(binding);
+                if (string.IsNullOrWhiteSpace(value))
+                    value = DefaultUnboundLabel;
+
+                string device = GetDeviceLabel(binding.Device);
+                if (!string.IsNullOrWhiteSpace(device) && !binding.IsEmpty)
+                    return $"{state.Label}: [{device}] {value}";
+
+                return $"{state.Label}: {value}";
+            }
+            catch (Exception ex)
+            {
+                LogError($"Failed to render keybind label '{state.Label}': {ex}");
+                return state.Label ?? string.Empty;
+            }
+        }
+
+        private static string GetDeviceLabel(Controls.InputKind kind)
+        {
+            return kind switch
+            {
+                Controls.InputKind.Keyboard => "Keyboard",
+                Controls.InputKind.Mouse => "Mouse",
+                Controls.InputKind.Joystick => "Controller",
+                _ => string.Empty
+            };
+        }
+
+        private static string FormatBinding(KeybindBinding binding)
+        {
+            if (binding.IsEmpty)
+                return DefaultUnboundLabel;
+
+            return binding.Device switch
+            {
+                Controls.InputKind.Keyboard => FormatKeyboard(binding.Element),
+                Controls.InputKind.Mouse => FormatMouse(binding.Element),
+                Controls.InputKind.Joystick => FormatJoystick(binding.Element),
+                _ => binding.Element ?? string.Empty
+            };
+        }
+
+        private static string FormatKeyboard(string elementName)
+        {
+            if (Enum.TryParse(elementName, true, out Controls.KeyboardElement element))
+            {
+                if (element == Controls.KeyboardElement.None || element == Controls.KeyboardElement.Undefined || element == Controls.KeyboardElement.Count)
+                    return DefaultUnboundLabel;
+
+                return Prettify(element.ToString());
+            }
+
+            return Prettify(elementName);
+        }
+
+        private static string FormatMouse(string elementName)
+        {
+            if (Enum.TryParse(elementName, true, out Controls.MouseElement element))
+            {
+                if (element == Controls.MouseElement.Undefined || element == Controls.MouseElement.Count)
+                    return DefaultUnboundLabel;
+
+                return Prettify(element.ToString());
+            }
+
+            return Prettify(elementName);
+        }
+
+        private static string FormatJoystick(string elementName)
+        {
+            if (Enum.TryParse(elementName, true, out Controls.JoystickElement element))
+            {
+                if (element == Controls.JoystickElement.Undefined || element == Controls.JoystickElement.Count)
+                    return DefaultUnboundLabel;
+
+                return Prettify(element.ToString());
+            }
+
+            return Prettify(elementName);
+        }
+
+        private static string Prettify(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+                return string.Empty;
+
+            var builder = new StringBuilder(raw.Length + 4);
+            for (int i = 0; i < raw.Length; i++)
+            {
+                char c = raw[i];
+                if (c == '_')
+                {
+                    builder.Append(' ');
+                    continue;
+                }
+
+                if (i > 0 && char.IsUpper(c) && char.IsLower(raw[i - 1]))
+                    builder.Append(' ');
+
+                builder.Append(c);
+            }
+
+            return builder.ToString().Trim();
+        }
+    }
+
+    internal static void CancelKeybindListening() => Keybinds.CancelListening();
+
+    internal static void TickKeybindListening() => Keybinds.Tick();
 
     private static readonly List<Page> pages = new();
     private static readonly Dictionary<string, Dictionary<string, Page>> pagesByOwner = new(StringComparer.OrdinalIgnoreCase);
@@ -1189,6 +1722,10 @@ public class ModSettingsManager
                     {
                         builder.Cycle(entry.Key.Key, configEntry, options.AcceptableValues);
                     }
+                }
+                else if (v is KeybindBinding)
+                {
+                    builder.Keybind(entry.Key.Key, (ConfigEntry<KeybindBinding>)entry.Value);
                 }
                 else if (v is Enum)
                 {
