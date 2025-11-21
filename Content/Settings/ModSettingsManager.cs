@@ -1165,7 +1165,7 @@ public class ModSettingsManager
         private const int PlayerIndex = 0;
         private const string DefaultListeningLabel = "Listening...";
         private const string DefaultUnboundLabel = "Not set";
-        private const bool DebugLogging = true;
+        private const bool DebugLogging = false;
 
         private static readonly HashSet<Controls.KeyboardElement> BannedKeyboard = new()
         {
