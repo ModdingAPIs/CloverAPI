@@ -25,6 +25,7 @@ internal static class HubState
 
     public static void Reset()
     {
+        ModSettingsManager.CancelKeybindListening();
         Current = View.None;
         HubPageOffset = 0;
         PageItemOffset = 0;
@@ -321,10 +322,26 @@ internal static class MainMenu_Patches
             {
                 HubState.Reset();
             }
+
+            ModSettingsManager.TickKeybindListening();
         }
         catch (Exception ex)
         {
             LogError($"OptionsUpdate postfix failed: {ex}");
+        }
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(MainMenuScript), "Update")]
+    private static void Update_Postfix()
+    {
+        try
+        {
+            ModSettingsManager.TickKeybindListening();
+        }
+        catch (Exception ex)
+        {
+            LogError($"Keybind listening tick failed: {ex}");
         }
     }
 
@@ -441,6 +458,7 @@ internal static class MainMenu_Patches
             if (HubState.Current == HubState.View.Page)
             {
                 Sound.Play("SoundMenuBack");
+                ModSettingsManager.CancelKeybindListening();
                 HubState.Current = HubState.View.HubIndex;
                 HubState.PageItemOffset = 0;
             }
@@ -581,6 +599,7 @@ internal static class MainMenu_Patches
         if (selectionIndex == layout.BackRow)
         {
             Sound.Play("SoundMenuBack");
+            ModSettingsManager.CancelKeybindListening();
             HubState.Current = HubState.View.HubIndex;
             HubState.PageItemOffset = 0;
             HubState.ActivePage = -1;
