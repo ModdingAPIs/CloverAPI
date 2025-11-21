@@ -44,6 +44,37 @@ public readonly struct KeybindBinding : IEquatable<KeybindBinding>
 
     public bool TryGetJoystick(out Controls.JoystickElement element) => TryGetElement(Controls.InputKind.Joystick, out element);
 
+    /// <summary>
+    /// Returns true if the underlying input is pressed for the given player index.
+    /// </summary>
+    public bool IsPressed(int playerIndex = 0)
+    {
+        if (IsEmpty)
+            return false;
+
+        switch (Device)
+        {
+            case Controls.InputKind.Keyboard:
+                return TryGetKeyboard(out var key) && Controls.KeyboardButton_PressedGet(playerIndex, key);
+
+            case Controls.InputKind.Mouse:
+                return TryGetMouse(out var mouse) &&
+                       Controls.MouseElement_IsButton(mouse) &&
+                       Controls.MouseButton_PressedGet(playerIndex, mouse);
+
+            case Controls.InputKind.Joystick:
+                if (!TryGetJoystick(out var joy))
+                    return false;
+
+                bool isTrigger = joy == Controls.JoystickElement.LeftTrigger || joy == Controls.JoystickElement.RightTrigger;
+                bool isButton = Controls.JoystickElement_IsButton(joy);
+                return (isButton || isTrigger) && Controls.JoystickButton_PressedGet(playerIndex, joy);
+
+            default:
+                return false;
+        }
+    }
+
     private bool TryGetElement<TEnum>(Controls.InputKind expected, out TEnum element) where TEnum : struct, Enum
     {
         element = default;

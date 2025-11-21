@@ -160,24 +160,32 @@ Use the `allow*` flags to disable keyboard input or joystick buttons/axes if you
 Keyboard `Esc`, `Backspace`, `Return`, and OS keys plus controller `Select`/`Start`/`Home` are filtered out to avoid trapping menu navigation buttons.  
 Simple Keybind Example:
 ```csharp
-ConfigEntry<KeybindBinding> dodgeKey = Config.Bind(
+ConfigEntry<KeybindBinding> testKey = Config.Bind(
     "Controls",
-    "Dodge",
+    "Test Action",
     new KeybindBinding(Controls.InputKind.Keyboard, nameof(Controls.KeyboardElement.Space)),
-    "Bind the dodge action (Keyboard/Controller).");
+    "Bind a test action (Keyboard/Controller).");
 
 ModSettingsManager.RegisterPage(this, "Example Mod", page =>
 {
-    page.Keybind("Dodge", dodgeKey);
+    page.Keybind("Test Action", testKey);
 });
+```
+Using the binding in-game:
+```csharp
+void Update()
+{
+    if (testKey.Value.IsPressed())
+        TriggerTestAction();
+}
 ```
 Optional `valueFormatter` lets you customize how the current binding is displayed.  
 Optional `onChanged` lets you provide a callback that runs whenever the player saves a new binding (e.g., update UI or sync state). Example with `onChanged`:
 ```csharp
 page.Keybind(
-    "Dodge",
-    dodgeKey,
-    onChanged: binding => Logger.LogInfo($"Dodge rebound to {binding}"));
+    "Test Action",
+    testKey,
+    onChanged: binding => Logger.LogInfo($"Test action rebound to {binding}"));
 ```
 
 ### Non-Config Settings
