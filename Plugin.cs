@@ -20,7 +20,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string PluginGuid = "ModdingAPIs.cloverpit.CloverAPI";
     public const string PluginName = "Clover API";
-    public const string PluginVer = "0.2.0";
+    public const string PluginVer = "0.2.1";
     internal const string MainContentFolder = "CloverAPI_Content";
 
     private const int FONT_SIZE = 16;
